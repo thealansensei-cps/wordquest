@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WordQuest — Teacher Dashboard</title>
+<style>
+  :root{
+    --grass:#3dbb6a;--grass-d:#2a9450;--sky:#5b8def;--violet:#8b5cf6;--coral:#ff6b6b;
+    --sun:#f0a818;--ink:#2c3142;--muted:#8a90a2;--line:#e7ebf2;--bg:#f5f7fb;
+    --shadow:0 4px 16px rgba(40,50,80,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+  .wrap{max-width:1000px;margin:0 auto;padding:20px}
+  header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:#fff;
+    border-radius:16px;box-shadow:var(--shadow);margin-bottom:20px}
+  .logo{font-size:22px;font-weight:800}.logo span{color:var(--grass)}
+  h2{font-size:18px;margin-bottom:12px}
+  .card{background:#fff;border-radius:16px;box-shadow:var(--shadow);padding:20px;margin-bottom:18px}
+  .btn{font:inherit;font-weight:700;border:none;border-radius:12px;padding:10px 18px;cursor:pointer;color:#fff;background:var(--grass)}
+  .btn:hover{filter:brightness(1.05)}.btn.sky{background:var(--sky)}.btn.violet{background:var(--violet)}
+  .btn.coral{background:var(--coral)}.btn.ghost{background:#eef1f7;color:var(--ink)}.btn.sm{padding:6px 12px;font-size:14px}
+  input,select,textarea{font:inherit;border:2px solid var(--line);border-radius:10px;padding:9px 12px;width:100%;color:var(--ink)}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--sky)}
+  label{font-weight:700;font-size:14px;display:block;margin:10px 0 4px}
+  .row{display:flex;gap:12px;flex-wrap:wrap}.row>*{flex:1;min-width:140px}
+  .muted{color:var(--muted);font-size:14px}
+  .pill{display:inline-block;background:#eef1f7;border-radius:20px;padding:3px 12px;font-size:13px;font-weight:700;margin:2px}
+  .code{font-family:monospace;font-size:24px;font-weight:800;letter-spacing:3px;color:var(--grass-d);background:#e9f9ef;padding:6px 16px;border-radius:10px;display:inline-block}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-size:12px;text-transform:uppercase}
+  .q-item{border:2px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px}
+  .q-item.low{border-color:var(--sun);background:#fffaf0}
+  .badge{font-size:11px;font-weight:800;padding:2px 8px;border-radius:6px;color:#fff;background:var(--sky)}
+  .badge.warn{background:var(--sun)}.badge.ok{background:var(--grass)}
+  .hide{display:none}
+  .tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+  .tab{padding:9px 16px;border-radius:10px;background:#eef1f7;cursor:pointer;font-weight:700;font-size:14px}
+  .tab.active{background:var(--ink);color:#fff}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;
+    padding:12px 22px;border-radius:12px;font-weight:600;opacity:0;transition:.3s;z-index:99}
+  .toast.show{opacity:1}
+  .empty{text-align:center;color:var(--muted);padding:30px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">Word<span>Quest</span> · Teacher</div>
+    <div id="who"></div>
+  </header>
+
+  <!-- ===== SIGN IN ===== -->
+  <div id="signin" class="card">
+    <h2>Sign in</h2>
+    <p class="muted" style="margin-bottom:12px">Use your teacher account. Students never sign in — you'll pre-load their names instead.</p>
+    <div class="row">
+      <div><label>Email</label><input id="email" type="email" placeholder="you@moe.edu.sg"></div>
+      <div><label>Password</label><input id="pw" type="password"></div>
+    </div>
+    <div style="margin-top:14px;display:flex;gap:10px">
+      <button class="btn" onclick="doSignIn()">Sign in</button>
+      <button class="btn ghost" onclick="doGoogle()">Sign in with Google</button>
+    </div>
+    <p class="muted" style="margin-top:14px">⚠️ Demo mode: if Supabase isn't configured, the dashboard runs locally so you can preview the flow.</p>
+  </div>
+
+  <!-- ===== APP ===== -->
+  <div id="app" class="hide">
+    <div class="tabs">
+      <div class="tab active" data-tab="classes" onclick="tab('classes')">🏫 Classes & Roster</div>
+      <div class="tab" data-tab="build" onclick="tab('build')">📝 Build Assignment</div>
+      <div class="tab" data-tab="live" onclick="tab('live')">📡 Live & Leaderboards</div>
+    </div>
+
+    <!-- CLASSES -->
+    <div id="tab-classes">
+      <div class="card">
+        <h2>Create a class (house)</h2>
+        <div class="row">
+          <div><label>Class name</label><input id="cls-name" placeholder="4 Resilience"></div>
+          <div style="flex:0 0 120px"><label>Crest</label><input id="cls-emoji" value="🦁" maxlength="2"></div>
+          <div style="flex:0 0 120px"><label>Colour</label><input id="cls-color" type="color" value="#3dbb6a"></div>
+          <div style="flex:0 0 auto;display:flex;align-items:flex-end"><button class="btn" onclick="addClass()">Add</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Your classes</h2>
+        <div id="class-list"><div class="empty">No classes yet.</div></div>
+      </div>
+      <div class="card" id="roster-card">
+        <h2>Roster — <span id="roster-cls">select a class</span></h2>
+        <label>Paste student names (one per line)</label>
+        <textarea id="roster-names" rows="5" placeholder="Mei T.&#10;Rahim A.&#10;Siti B."></textarea>
+        <div style="margin-top:10px"><button class="btn sky" onclick="saveRoster()">Save roster</button></div>
+        <div id="roster-table" style="margin-top:14px"></div>
+      </div>
+    </div>
+
+    <!-- BUILD -->
+    <div id="tab-build" class="hide">
+      <div class="card">
+        <h2>New assignment</h2>
+        <div class="row">
+          <div><label>Title</label><input id="as-title" placeholder="Term 2 Grammar Set A"></div>
+          <div style="flex:0 0 180px"><label>Category</label>
+            <select id="as-cat">
+              <option value="grammar">Grammar</option>
+              <option value="vocab">Vocabulary</option>
+              <option value="synthesis">Synthesis</option>
+              <option value="spelling">Spelling</option>
+              <option value="comprehension" disabled>Comprehension (soon)</option>
+              <option value="composition" disabled>Composition (soon)</option>
+            </select>
+          </div>
+          <div style="flex:0 0 130px"><label>Pass mark %</label><input id="as-pass" type="number" value="60"></div>
+        </div>
+        <label style="margin-top:10px"><input type="checkbox" id="as-roster" style="width:auto"> Restrict to roster (students must pick their name)</label>
+      </div>
+
+      <div class="card">
+        <h2>Add questions</h2>
+        <p class="muted">Upload a worksheet (PDF) or paste text. We'll auto-detect questions — then you review and fix the answers before publishing.</p>
+        <div class="row" style="margin-top:10px">
+          <div><label>Upload PDF</label><input id="pdf-file" type="file" accept="application/pdf"></div>
+          <div style="flex:0 0 auto;display:flex;align-items:flex-end"><button class="btn violet" onclick="parsePDF()">Parse PDF</button></div>
+        </div>
+        <label style="margin-top:10px">…or paste worksheet text</label>
+        <textarea id="paste-text" rows="5" placeholder="1. The cat ___ on the mat. (A) sit (B) sits (C) sat (D) sitting"></textarea>
+        <div style="margin-top:10px"><button class="btn violet" onclick="parsePaste()">Parse text</button></div>
+      </div>
+
+      <div class="card" id="review-card">
+        <h2>Review questions <span id="rev-count" class="muted"></span></h2>
+        <div id="review-list"><div class="empty">Parsed questions will appear here for review.</div></div>
+        <div style="margin-top:14px;display:flex;gap:10px">
+          <button class="btn" onclick="publish()">✅ Publish assignment</button>
+        </div>
+      </div>
+
+      <div class="card hide" id="published-card">
+        <h2>Published!</h2>
+        <p class="muted">Share this join code with students:</p>
+        <div class="code" id="pub-code">—</div>
+      </div>
+    </div>
+
+    <!-- LIVE -->
+    <div id="tab-live" class="hide">
+      <div class="card">
+        <h2>🏆 House Cup</h2>
+        <p class="muted">Ranked by average score across categories. Total points shown as a bonus stat.</p>
+        <div id="housecup" style="margin-top:12px"><div class="empty">No completed sessions yet.</div></div>
+      </div>
+      <div class="card">
+        <h2>⭐ Top students by category</h2>
+        <div class="row" style="margin-bottom:12px"><div style="flex:0 0 200px">
+          <select id="cat-filter" onchange="loadTop()">
+            <option value="grammar">Grammar</option><option value="vocab">Vocabulary</option>
+            <option value="synthesis">Synthesis</option><option value="spelling">Spelling</option>
+          </select></div></div>
+        <div id="topstudents"><div class="empty">No data yet.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Supabase + PDF.js -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="module">
+  import * as pdfjs from "https://cdn.jsdelivr.net/npm/pdfjs-dist@4/build/pdf.min.mjs";
+  pdfjs.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4/build/pdf.worker.min.mjs";
+  window.pdfjsLib = pdfjs;
+</script>
+
+<!-- CONFIG: replace with your project values to go live -->
+<script>
+  // window.WQ_SUPABASE_URL = "https://zwdzvzvbotuuxxwtreqe.supabase.co";
+  // window.WQ_SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3ZHp2enZib3R1dXh4d3RyZXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxODE4NDgsImV4cCI6MjA5NTc1Nzg0OH0.vdg0BnrsiWv8AnRsr-4323Gz5FKps5DoArvDJKeQAr8";
+  window.WQ_DEMO = !(window.WQ_SUPABASE_URL && window.WQ_SUPABASE_ANON);
+</script>
+
+<script src="wq-api.js"></script>
+<script src="wq-parser.js"></script>
+<script>
+/* ---------- tiny helpers ---------- */
+const $=s=>document.querySelector(s);
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+function tab(name){
+  ['classes','build','live'].forEach(t=>{
+    $('#tab-'+t).classList.toggle('hide',t!==name);
+    document.querySelector(`.tab[data-tab="${t}"]`).classList.toggle('active',t===name);
+  });
+  if(name==='live'){loadHouseCup();loadTop();}
+}
+
+/* ---------- state ---------- */
+let TEACHER=null, MYCLASSES=[], SELCLASS=null, DRAFTS=[], CURASSIGN=null;
+
+/* ---------- DEMO store (localStorage) so the page works without Supabase ---------- */
+const DEMO = {
+  k:'wq_demo', load(){return JSON.parse(localStorage.getItem(this.k)||'{"classes":[],"roster":{},"assignments":[]}');},
+  save(d){localStorage.setItem(this.k,JSON.stringify(d));}
+};
+
+/* ---------- auth ---------- */
+async function doSignIn(){
+  if(window.WQ_DEMO){ enterApp({name:$('#email').value||'Demo Teacher',id:'demo'}); return; }
+  const {error}=await WQ_API.signIn($('#email').value,$('#pw').value);
+  if(error)return toast(error.message);
+  const {data}=await WQ_API.ensureTeacher();
+  enterApp(data);
+}
+async function doGoogle(){ if(window.WQ_DEMO){enterApp({name:'Demo Teacher',id:'demo'});return;} await WQ_API.signInWithGoogle(); }
+function enterApp(t){
+  TEACHER=t; $('#signin').classList.add('hide'); $('#app').classList.remove('hide');
+  $('#who').innerHTML=`${t.name} · <a href="#" onclick="signOut()" class="muted">sign out</a>`;
+  loadClasses();
+}
+function signOut(){ if(!window.WQ_DEMO)WQ_API.signOut(); location.reload(); }
+
+/* ---------- classes ---------- */
+async function addClass(){
+  const name=$('#cls-name').value.trim(); if(!name)return toast('Enter a class name');
+  const emoji=$('#cls-emoji').value||'🦁', color=$('#cls-color').value;
+  if(window.WQ_DEMO){const d=DEMO.load();d.classes.push({id:'c'+Date.now(),name,crest_emoji:emoji,house_color:color});DEMO.save(d);}
+  else{await WQ_API.createClass(TEACHER.id,name,color,emoji);}
+  $('#cls-name').value=''; toast('Class added'); loadClasses();
+}
+async function loadClasses(){
+  if(window.WQ_DEMO){MYCLASSES=DEMO.load().classes;}
+  else{const {data}=await WQ_API.listMyClasses(TEACHER.id);MYCLASSES=data||[];}
+  const box=$('#class-list');
+  if(!MYCLASSES.length){box.innerHTML='<div class="empty">No classes yet.</div>';return;}
+  box.innerHTML=MYCLASSES.map(c=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)">
+      <div><span style="font-size:20px">${c.crest_emoji}</span>
+        <b style="margin-left:8px">${c.name}</b>
+        <span class="pill" style="background:${c.house_color}22;color:${c.house_color}">house</span></div>
+      <button class="btn ghost sm" onclick="selClass('${c.id}')">Manage roster</button>
+    </div>`).join('');
+}
+function selClass(id){
+  SELCLASS=MYCLASSES.find(c=>c.id===id);
+  $('#roster-cls').textContent=SELCLASS.name;
+  loadRoster();
+}
+async function saveRoster(){
+  if(!SELCLASS)return toast('Select a class first');
+  const names=$('#roster-names').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  if(!names.length)return toast('Paste some names');
+  if(window.WQ_DEMO){const d=DEMO.load();d.roster[SELCLASS.id]=(d.roster[SELCLASS.id]||[]).concat(
+    names.map((n,i)=>({id:'r'+Date.now()+i,display_name:n,pick_token:tok()})));DEMO.save(d);}
+  else{await WQ_API.addRosterBulk(SELCLASS.id,names);}
+  $('#roster-names').value=''; toast('Roster saved'); loadRoster();
+}
+async function loadRoster(){
+  let rows;
+  if(window.WQ_DEMO){rows=(DEMO.load().roster[SELCLASS.id]||[]);}
+  else{const {data}=await WQ_API.listRoster(SELCLASS.id);rows=data||[];}
+  $('#roster-table').innerHTML=rows.length?`<table><tr><th>#</th><th>Name</th><th>Pick code</th></tr>${
+    rows.map((r,i)=>`<tr><td>${i+1}</td><td>${r.display_name}</td><td><code>${r.pick_token}</code></td></tr>`).join('')}</table>`
+    :'<div class="muted">No students yet.</div>';
+}
+function tok(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<4;i++)s+=c[Math.floor(Math.random()*c.length)];return s;}
+
+/* ---------- build: parse ---------- */
+async function parsePDF(){
+  const f=$('#pdf-file').files[0]; if(!f)return toast('Choose a PDF');
+  toast('Parsing PDF…');
+  try{
+    const buf=await f.arrayBuffer();
+    const text=await WQ_PARSER.pdfToText(buf);
+    DRAFTS=WQ_PARSER.parseText(text,$('#as-cat').value);
+    renderReview();
+  }catch(e){toast('PDF parse failed: '+e.message);}
+}
+function parsePaste(){
+  const text=$('#paste-text').value; if(!text.trim())return toast('Paste some text');
+  DRAFTS=WQ_PARSER.parseText(text,$('#as-cat').value);
+  renderReview();
+}
+function renderReview(){
+  $('#rev-count').textContent=`(${DRAFTS.length})`;
+  if(!DRAFTS.length){$('#review-list').innerHTML='<div class="empty">No questions detected. Try pasting text.</div>';return;}
+  $('#review-list').innerHTML=DRAFTS.map((q,i)=>qEditor(q,i)).join('');
+}
+function qEditor(q,i){
+  const low=q._confidence<0.6;
+  let body='';
+  if(q.qtype==='mc'){
+    body=`<label>Question</label><input value="${esc(q.payload.text)}" onchange="upd(${i},'text',this.value)">
+      <label>Options (correct is selected)</label>
+      ${q.payload.options.map((o,oi)=>`<div style="display:flex;gap:8px;margin:4px 0">
+        <input type="radio" name="ans${i}" ${oi===q.payload.answer?'checked':''} onchange="updAns(${i},${oi})" style="width:auto">
+        <input value="${esc(o)}" onchange="updOpt(${i},${oi},this.value)"></div>`).join('')}`;
+  }else if(q.qtype==='fill'){
+    body=`<label>Question (use ___ for the blank)</label><input value="${esc(q.payload.text)}" onchange="upd(${i},'text',this.value)">
+      <label>Accepted answer(s), comma-separated</label>
+      <input value="${esc((q.payload.answer||['']).join(', '))}" onchange="updArr(${i},'answer',this.value)">`;
+  }else if(q.qtype==='cloze'){
+    body=`<label>Passage (blanks marked _1_ _2_ …)</label><textarea rows="3" onchange="upd(${i},'passage',this.value)">${esc(q.payload.passage)}</textarea>
+      ${q.payload.blanks.map((b,bi)=>`<label>Blank ${b.id} answer(s)</label>
+        <input value="${esc((b.correct||['']).join(', '))}" onchange="updBlank(${i},${bi},this.value)" placeholder="e.g. went">`).join('')}`;
+  }else if(q.qtype==='transform'){
+    body=`<label>Task / instruction</label><input value="${esc(q.payload.task||q.payload.text)}" onchange="upd(${i},'task',this.value)">
+      <label>Original sentence(s) — one per line</label>
+      <textarea rows="2" onchange="updArr(${i},'original',this.value,'\\n')">${esc((q.payload.original||[]).join('\n'))}</textarea>
+      <label>Model answer</label><input value="${esc((q.payload.correct||[''])[0])}" onchange="updCorrect(${i},this.value)">
+      <label>Required keyword(s) in 'quotes' (for auto-check)</label>
+      <input value="${esc(q.payload.rubric||'')}" onchange="upd(${i},'rubric',this.value)" placeholder="Must contain 'because'">`;
+  }
+  return `<div class="q-item ${low?'low':''}">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div>
+        <select onchange="updType(${i},this.value)" style="width:auto;display:inline-block">
+          ${['mc','fill','cloze','transform','spell'].map(t=>`<option ${t===q.qtype?'selected':''}>${t}</option>`).join('')}
+        </select>
+        <span class="badge ${low?'warn':'ok'}">${low?'check':'ok'} ${Math.round(q._confidence*100)}%</span>
+      </div>
+      <button class="btn ghost sm" onclick="delQ(${i})">remove</button>
+    </div>
+    ${body}
+    <div class="row" style="margin-top:8px">
+      <div><label>Skill tag</label><input value="${esc(q.skill||'')}" onchange="upd(${i},'_skill',this.value)" placeholder="e.g. Tenses"></div>
+      <div><label>LO tag</label><input value="${esc(q.lo||'')}" onchange="upd(${i},'_lo',this.value)" placeholder="e.g. Grammar LO1"></div>
+    </div>
+    <div class="muted" style="margin-top:6px">${q._note||''}</div>
+  </div>`;
+}
+function esc(s){return (s==null?'':String(s)).replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+function upd(i,k,v){if(k==='_skill')DRAFTS[i].skill=v;else if(k==='_lo')DRAFTS[i].lo=v;else DRAFTS[i].payload[k]=v;}
+function updArr(i,k,v,sep){DRAFTS[i].payload[k]=v.split(sep||',').map(s=>s.trim()).filter(Boolean);}
+function updOpt(i,oi,v){DRAFTS[i].payload.options[oi]=v;}
+function updAns(i,oi){DRAFTS[i].payload.answer=oi;}
+function updBlank(i,bi,v){DRAFTS[i].payload.blanks[bi].correct=v.split(',').map(s=>s.trim()).filter(Boolean);}
+function updCorrect(i,v){DRAFTS[i].payload.correct=[v];}
+function updType(i,t){DRAFTS[i].qtype=t;renderReview();}
+function delQ(i){DRAFTS.splice(i,1);renderReview();}
+
+/* ---------- publish ---------- */
+async function publish(){
+  if(!DRAFTS.length)return toast('No questions to publish');
+  const title=$('#as-title').value.trim()||'Untitled';
+  const cat=$('#as-cat').value, pass=parseInt($('#as-pass').value)||60, rosterOnly=$('#as-roster').checked;
+  if(window.WQ_DEMO){
+    const code=joincode();const d=DEMO.load();
+    d.assignments.push({id:'a'+Date.now(),title,category:cat,join_code:code,pass_mark:pass,roster_only:rosterOnly,
+      questions:DRAFTS.map((q,i)=>({...q,ord:i}))});
+    DEMO.save(d);showPublished(code);return;
+  }
+  const {data:as,error}=await WQ_API.createAssignment(TEACHER.id,title,cat,{rosterOnly,passMark:pass});
+  if(error)return toast(error.message);
+  const items=DRAFTS.map(q=>({qtype:q.qtype,skill:q.skill,lo:q.lo,payload:q.payload,approved:true}));
+  await WQ_API.addQuestions(as.id,items);
+  showPublished(as.join_code);
+}
+function showPublished(code){
+  $('#published-card').classList.remove('hide');
+  $('#pub-code').textContent=code;
+  toast('Published! Code: '+code);
+}
+function joincode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<5;i++)s+=c[Math.floor(Math.random()*c.length)];return s;}
+
+/* ---------- leaderboards ---------- */
+async function loadHouseCup(){
+  if(window.WQ_DEMO){$('#housecup').innerHTML='<div class="muted">Live leaderboards appear here once students play (requires Supabase).</div>';return;}
+  const {data}=await WQ_API.houseCup();
+  if(!data||!data.length){$('#housecup').innerHTML='<div class="empty">No completed sessions yet.</div>';return;}
+  $('#housecup').innerHTML=`<table><tr><th>Rank</th><th>House</th><th>Avg %</th><th>Bonus pts</th><th>Students</th></tr>${
+    data.map((h,i)=>`<tr><td>${['🥇','🥈','🥉'][i]||i+1}</td>
+      <td>${h.crest_emoji} <b>${h.class_name}</b></td><td><b>${h.house_avg}%</b></td>
+      <td>${h.house_points}</td><td>${h.students}</td></tr>`).join('')}</table>`;
+}
+async function loadTop(){
+  if(window.WQ_DEMO){$('#topstudents').innerHTML='<div class="muted">Top students appear here once students play (requires Supabase).</div>';return;}
+  const cat=$('#cat-filter').value;
+  const {data}=await WQ_API.topStudents(cat);
+  if(!data||!data.length){$('#topstudents').innerHTML='<div class="empty">No data yet.</div>';return;}
+  $('#topstudents').innerHTML=`<table><tr><th>Rank</th><th>Student</th><th>Class</th><th>Best %</th></tr>${
+    data.map(s=>`<tr><td>${s.rnk}</td><td><b>${s.student_name}</b></td><td>${s.class_name}</td><td>${s.best_pct}%</td></tr>`).join('')}</table>`;
+}
+
+/* auto-enter demo if no backend */
+window.addEventListener('load',()=>{ if(window.WQ_DEMO){ /* stay on sign-in; user clicks to enter demo */ } });
+</script>
+</body>
+</html>
