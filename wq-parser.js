@@ -76,6 +76,16 @@
 
   /* Decide what kind of question a block is */
   function classifyBlock(block, category) {
+    // ---- Auto-extract answer from "Answer: ..." lines ----
+    let autoAnswer = null;
+    const answerLineIdx = block.lines.findIndex(l => /^\s*answer\s*:/i.test(l));
+    if (answerLineIdx >= 0) {
+      const answerLine = block.lines[answerLineIdx];
+      autoAnswer = answerLine.replace(/^\s*answer\s*:\s*/i, "").trim();
+      // Remove answer line from block for further processing
+      block.lines = block.lines.filter((l, i) => i !== answerLineIdx);
+    }
+
     const joined = block.lines.join(" ").trim();
 
     // ---- Transform / synthesis cues ----
@@ -86,9 +96,9 @@
       return draft("transform", category, {
         text: task, task: task,
         original: originals.length ? originals : [joined.replace(transformCue, "").trim()],
-        correct: [""],         // teacher fills the model answer
-        rubric: "Teacher: add required keyword(s) in 'quotes' and review."
-      }, 0.5, "Transform detected — add the model answer & keyword(s).");
+        correct: autoAnswer ? [autoAnswer] : [""],         // use auto-extracted answer if found
+        rubric: "Teacher: review keyword(s) in 'quotes'."
+      }, autoAnswer ? 0.85 : 0.5, autoAnswer ? "Transform + answer detected." : "Transform detected — add the model answer & keyword(s).");
     }
 
     // ---- Inline MC: "(A) .. (B) .. (C) .. (D) .." ----
@@ -96,9 +106,16 @@
     if (inlineOpts.length >= 2) {
       const stem = joined.slice(0, joined.indexOf("(" + inlineOpts[0][1] + ")")).trim();
       const options = inlineOpts.map(m => m[2].trim());
+      let answerIdx = 0;
+      if (autoAnswer) {
+        // Find which option matches the auto-extracted answer (case-insensitive prefix)
+        const ansLower = autoAnswer.toLowerCase();
+        answerIdx = options.findIndex(opt => opt.toLowerCase().startsWith(ansLower.charAt(0)) || opt.toLowerCase().includes(ansLower));
+        if (answerIdx < 0) answerIdx = 0;
+      }
       return draft("mc", category, {
-        text: stem, options, answer: 0,   // teacher picks correct
-      }, 0.7, "MC detected — set the correct option.");
+        text: stem, options, answer: answerIdx,
+      }, autoAnswer ? 0.85 : 0.7, autoAnswer ? "MC + answer detected." : "MC detected — set the correct option.");
     }
 
     // ---- Stacked MC: option lines like "A) sit" "B) sits" ----
@@ -106,8 +123,14 @@
     if (optLines.length >= 2) {
       const stem = block.lines.filter(l => !/^[A-D][\.\)]\s+/.test(l)).join(" ").trim();
       const options = optLines.map(l => l.replace(/^[A-D][\.\)]\s+/, "").trim());
-      return draft("mc", category, { text: stem, options, answer: 0 },
-        0.7, "MC detected — set the correct option.");
+      let answerIdx = 0;
+      if (autoAnswer) {
+        const ansLower = autoAnswer.toLowerCase();
+        answerIdx = options.findIndex(opt => opt.toLowerCase().includes(ansLower));
+        if (answerIdx < 0) answerIdx = 0;
+      }
+      return draft("mc", category, { text: stem, options, answer: answerIdx },
+        autoAnswer ? 0.85 : 0.7, autoAnswer ? "MC + answer detected." : "MC detected — set the correct option.");
     }
 
     // ---- Cloze: several numbered blanks within one paragraph ----
@@ -126,8 +149,8 @@
     // ---- Single blank -> fill ----
     if (/_{2,}/.test(joined)) {
       return draft("fill", category, {
-        text: joined, answer: [""]
-      }, 0.6, "Fill-in detected — add the accepted answer(s).");
+        text: joined, answer: autoAnswer ? [autoAnswer] : [""]
+      }, autoAnswer ? 0.85 : 0.6, autoAnswer ? "Fill + answer detected." : "Fill-in detected — add the accepted answer(s).");
     }
 
     // ---- Fallback: treat as fill draft (teacher decides) ----

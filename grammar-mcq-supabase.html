@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grammar Vault — Grammar MCQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0D0F1A;--surface:#13162A;--surface2:#1A1F36;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);--text:#E8EAF6;--muted:rgba(232,234,246,0.45);--accent:#7C3AED;--accent2:#A78BFA;--teal:#34D399;--coral:#F87171;--radius:18px;--radius-sm:10px}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 20% -10%,rgba(124,58,237,.12) 0%,transparent 60%)}
+.wrap{max-width:680px;margin:0 auto;padding:20px 16px 56px;position:relative;z-index:1}
+.hdr{text-align:center;padding:28px 0 20px}
+.hdr-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.3);border-radius:99px;padding:5px 14px;margin-bottom:14px;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--accent2)}
+.hdr-logo{width:70px;height:70px;background:linear-gradient(135deg,var(--accent),#6D28D9);border-radius:24px;display:inline-flex;align-items:center;justify-content:center;font-size:34px;margin-bottom:12px;box-shadow:0 8px 32px rgba(124,58,237,.35);animation:float 4s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-8px) rotate(1deg)}}
+.hdr-title{font-family:'Instrument Serif',serif;font-size:clamp(26px,6vw,42px);font-weight:400;color:#fff;margin-bottom:8px}
+.hdr-title span{color:var(--accent2);font-style:italic}
+.hdr-sub{font-size:13px;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:14px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent)}
+.rule-chip{display:inline-flex;align-items:center;gap:7px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.25);border-radius:10px;padding:8px 14px;font-size:12px;font-weight:600;color:var(--accent2);margin-bottom:14px;line-height:1.5}
+.progress-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.progress-bar{flex:1;height:5px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px;transition:width .4s}
+.progress-txt{font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap}
+.q-num{font-size:11px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.q-text{font-size:14px;color:var(--text);margin-bottom:16px;font-weight:600}
+.mcq-opts{display:flex;flex-direction:column;gap:8px}
+.mcq-opt{background:var(--surface2);border:1.5px solid var(--border2);border-radius:11px;padding:12px 16px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;transition:all .2s;font-family:inherit;text-align:left;line-height:1.6}
+.mcq-opt:hover{border-color:var(--accent);background:rgba(124,58,237,.1);color:#fff}
+.mcq-opt.correct{border-color:var(--teal);background:rgba(52,211,153,.15);color:var(--teal)}
+.mcq-opt.wrong{border-color:var(--coral);background:rgba(248,113,113,.12);color:var(--coral)}
+.hint-box{display:none;margin-top:12px;padding:11px 14px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.25);border-radius:10px;font-size:13px;color:#FBBF24;font-weight:600;line-height:1.5}
+.hint-box.show{display:block}
+.feedback{display:none;margin-top:12px;padding:11px 14px;border-radius:10px;font-size:13px;font-weight:600;align-items:center;gap:8px}
+.feedback.show{display:flex}
+.feedback.ok{background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.3);color:var(--teal)}
+.feedback.bad{background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.3);color:var(--coral)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:none;border-radius:11px;padding:12px 22px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-success{background:linear-gradient(135deg,#10B981,#059669);color:#fff;box-shadow:0 4px 18px rgba(16,185,129,.4)}
+.btn-success:hover{transform:translateY(-2px);filter:brightness(1.08)}
+.btn-success:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-outline{background:transparent;border:1.5px solid var(--border2);color:var(--muted)}
+.btn-outline:hover{border-color:var(--accent2);color:var(--accent2)}
+.btn-ghost{background:rgba(255,255,255,.06);border:1px solid var(--border2);color:var(--text)}
+.btn-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.stat-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.stat{flex:1;min-width:75px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;text-align:center}
+.stat-val{font-family:'Instrument Serif',serif;font-size:26px;color:#fff}
+.stat-lbl{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+.result-screen{display:none;text-align:center;padding:32px 0}
+.result-screen.show{display:block}
+.result-emoji{font-size:60px;margin-bottom:14px;animation:popIn .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes popIn{from{transform:scale(0)}to{transform:scale(1)}}
+.result-title{font-family:'Instrument Serif',serif;font-size:34px;color:#fff;margin-bottom:6px}
+.result-sub{font-size:13px;color:var(--muted);margin-bottom:22px}
+.submit-note{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);border-radius:11px;padding:12px 16px;font-size:13px;color:var(--teal);font-weight:600;margin-bottom:16px;text-align:center}
+.game-topbar{position:sticky;top:0;z-index:50;background:rgba(13,15,26,.92);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.08);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:0}
+.gtb-left{display:flex;align-items:center;gap:10px}
+.gtb-title{font-family:'Instrument Serif',serif;font-size:16px;color:#fff}
+.btn-island-return{display:inline-flex;align-items:center;gap:6px;background:rgba(0,212,190,.15);border:1px solid rgba(0,212,190,.35);color:#00d4be;font-size:12px;font-weight:800;border-radius:10px;padding:6px 14px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;text-decoration:none}
+.btn-island-return:hover{background:rgba(0,212,190,.25);color:#fff}
+#heroBar{background:var(--surface);border-bottom:1px solid rgba(255,255,255,0.1);padding:10px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:relative;z-index:10}
+.hero-badge{background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);border-radius:99px;padding:5px 14px;font-size:11px;font-weight:600;color:#34D399}
+.hero-name{font-size:13px;font-weight:700;color:#E8EAF6}
+.hero-cls{font-size:10px;color:rgba(232,234,246,0.45);font-weight:500;margin-top:1px}
+.btn-back-island{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);font-size:11px;font-weight:700;border-radius:8px;padding:5px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
+.btn-back-island:hover{background:rgba(255,255,255,.13);color:#fff}
+</style>
+</head>
+<body>
+<div id="heroBar"></div>
+<div class="game-topbar">
+  <div class="gtb-left">
+    <span style="font-size:20px">🏝️</span>
+    <span class="gtb-title">Cantonment Class Quest</span>
+  </div>
+  <button class="btn-island-return" onclick="goBack()">🏝️ Return to Island</button>
+</div>
+<div class="wrap">
+  <div class="hdr">
+    <div class="hdr-badge">📚 Grammar Vault</div>
+    <div class="hdr-logo">💭</div>
+    <h1 class="hdr-title">Grammar <span>MCQ</span></h1>
+    <p class="hdr-sub">Multiple-choice grammar questions</p>
+  </div>
+
+  <div class="card" id="quizCard">
+    <div class="rule-chip" id="ruleChip">📌 Grammar Focus</div>
+    <div class="progress-row">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:10%"></div></div>
+      <div class="progress-txt" id="progressTxt">1 / 10</div>
+    </div>
+    <div class="q-num" id="qNum">Question 1 of 10</div>
+    <div class="q-text" id="qText"></div>
+    <div class="mcq-opts" id="mcqOpts"></div>
+    <div class="hint-box" id="hintBox"></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="showHint()">💡 Hint</button>
+      <button class="btn btn-ghost" onclick="goBack()">← Back</button>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <div class="result-emoji" id="resultEmoji">⭐</div>
+    <div class="result-title" id="resultTitle">Well Done!</div>
+    <div class="result-sub" id="resultSub"></div>
+    <div class="stat-row" style="max-width:300px;margin:0 auto 16px">
+      <div class="stat"><div class="stat-val" id="rScore">0</div><div class="stat-lbl">Correct</div></div>
+      <div class="stat"><div class="stat-val" id="rStars">0</div><div class="stat-lbl">Stars</div></div>
+      <div class="stat"><div class="stat-val" id="rPts">0</div><div class="stat-lbl">Points</div></div>
+    </div>
+    <div class="submit-note">✅ Done! Click below to save your score and return to the island.</div>
+    <div class="btn-row" style="justify-content:center;flex-direction:column;align-items:center;gap:10px">
+      <button class="btn btn-success" id="submitBtn" onclick="doSubmit()">📤 Submit Score & Return to Island</button>
+      <button class="btn btn-ghost" onclick="restart()">↩ Try Again</button>
+      <button class="btn btn-island-return" style="padding:12px 22px;font-size:14px" onclick="goBack()">🏝️ Back to Island</button>
+    </div>
+  </div>
+</div>
+
+<script src="supabase-games-client.js"></script>
+<script>
+const urlP=new URLSearchParams(location.search);
+const _stored=(function(){try{return JSON.parse(sessionStorage.getItem('student')||'{}');}catch(e){return{};}})();
+const hero={name:urlP.get('hero')||_stored.name||'',cls:urlP.get('cls')||_stored.cls||'',returnTo:urlP.get('returnTo')||'student-portal.html'};
+
+(function(){
+  const bar=document.getElementById('heroBar');if(!bar)return;
+  if(hero.name){
+    bar.innerHTML='<div class="hero-badge">✓ Logged in</div><div><div class="hero-name">'+hero.name+'</div><div class="hero-cls">'+hero.cls+'</div></div><div style="margin-left:auto;font-size:10px;color:rgba(232,234,246,.45);letter-spacing:.5px">Scores auto-save on completion</div><button class="btn-back-island" onclick="goBack()">← Island</button>';
+  }else{
+    bar.innerHTML='<div style="font-size:12px;color:#FBBF24;font-weight:700">⚠️ Not logged in — go back to the portal to log in first.</div><button class="btn-back-island" onclick="window.location.href=hero.returnTo">← Island</button>';
+  }
+})();
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const QUESTIONS=[
+  {skill:'Subject-Verb Agreement',text:'The team __ a strong strategy.',opts:['have','has','are','is'],answer:1,hint:'Treat "team" as a single unit (singular). Use "has".'},
+  {skill:'Tense Consistency',text:'She walks to school and __ her friends there.',opts:['met','meets','meet','is meeting'],answer:1,hint:'Both verbs should be in present tense. "meets".'},
+  {skill:'Pronoun Reference',text:'The books on the shelf belong to him and __.',opts:['I','me','myself','myself'],answer:1,hint:'Object pronoun after "to". Use "me".'},
+  {skill:'Article Usage',text:'She is __ engineer who works at __ hospital.',opts:['an, a','a, an','an, an','a, a'],answer:0,hint:'"engineer" starts with vowel sound (an). "hospital" with consonant sound (a).'},
+  {skill:'Comparative Forms',text:'This book is __ the other one.',opts:['more interesting than','as interesting as','the most interesting','interestinger than'],answer:0,hint:'Comparing two items: "more + adjective + than".'},
+  {skill:'Verb Form After Modal',text:'You __ finish your homework before dinner.',opts:['have to','has to','to have','having'],answer:0,hint:'Modal + base form. "have to" (not "have to to").'},
+  {skill:'Passive Voice',text:'The letter __ by the mail carrier.',opts:['deliver','delivers','was delivered','has deliver'],answer:2,hint:'Past event, unknown agent. Use past passive: "was delivered".'},
+  {skill:'Conditional Structure',text:'If she __ earlier, she would not be late.',opts:['has left','had left','leaves','will leave'],answer:1,hint:'Counterfactual: "If + past perfect, would + base form".'},
+  {skill:'Relative Clause',text:'The girl __ I spoke to is my friend.',opts:['who','whom','which','that'],answer:3,hint:'After a noun (girl), "that" works as a relative pronoun.'},
+  {skill:'Gerund vs Infinitive',text:'I enjoy __ books in my free time.',opts:['to read','reading','read','reads'],answer:1,hint:'After "enjoy": gerund form (verb+ing). "reading".'}
+];
+
+let qi=0,score=0,answered=false,submitted=false;
+
+function renderQ(){
+  const q=QUESTIONS[qi];
+  document.getElementById('progressFill').style.width=((qi+1)/QUESTIONS.length*100)+'%';
+  document.getElementById('progressTxt').textContent=(qi+1)+' / '+QUESTIONS.length;
+  document.getElementById('qNum').textContent='Question '+(qi+1)+' of '+QUESTIONS.length;
+  document.getElementById('ruleChip').textContent='📌 '+q.skill;
+  document.getElementById('qText').textContent=q.text;
+  document.getElementById('hintBox').className='hint-box';
+  document.getElementById('feedback').className='feedback';
+  answered=false;
+  document.getElementById('mcqOpts').innerHTML=q.opts.map((o,i)=>'<button class="mcq-opt" onclick="pickOpt('+i+',this)">'+String.fromCharCode(65+i)+'. '+o+'</button>').join('');
+}
+
+function pickOpt(i,btn){
+  if(answered)return;
+  answered=true;
+  const q=QUESTIONS[qi];
+  document.querySelectorAll('.mcq-opt').forEach(function(o){o.style.pointerEvents='none';});
+  if(i===q.answer){
+    score++;btn.classList.add('correct');
+    var fb=document.getElementById('feedback');fb.className='feedback show ok';fb.textContent='✅ Correct!';
+  }else{
+    btn.classList.add('wrong');
+    document.querySelectorAll('.mcq-opt')[q.answer].classList.add('correct');
+    var fb=document.getElementById('feedback');fb.className='feedback show bad';
+    fb.textContent='❌ Not quite. The correct answer is highlighted.';
+  }
+  setTimeout(function(){if(qi<QUESTIONS.length-1){qi++;renderQ();}else showResult();},1500);
+}
+
+function showHint(){
+  var h=document.getElementById('hintBox');
+  h.textContent='💡 '+QUESTIONS[qi].hint;
+  h.classList.add('show');
+}
+
+function showResult(){
+  var total=QUESTIONS.length,pct=Math.round(score/total*100);
+  var stars=pct>=90?3:pct>=70?2:pct>=50?1:0;
+  document.getElementById('quizCard').style.display='none';
+  document.getElementById('resultScreen').classList.add('show');
+  document.getElementById('resultEmoji').textContent=stars===3?'🏆':stars===2?'🌟':stars===1?'⭐':'💪';
+  document.getElementById('resultTitle').textContent=stars===3?'Perfect!':stars===2?'Great Work!':stars===1?'Good Try!':'Keep Practising!';
+  document.getElementById('resultSub').textContent='You got '+score+'/'+total+' correct';
+  document.getElementById('rScore').textContent=score;
+  document.getElementById('rStars').textContent=stars;
+  document.getElementById('rPts').textContent='+'+(score*10);
+}
+
+async function doSubmit(){
+  if(submitted)return;
+  var btn=document.getElementById('submitBtn');btn.disabled=true;btn.textContent='⏳ Submitting...';
+  submitted=true;
+  var total=QUESTIONS.length,pct=Math.round(score/total*100),stars=pct>=90?3:pct>=70?2:pct>=50?1:0;
+  await supabase.saveScore({student_name:hero.name,class_name:hero.cls,zone:'gmcq',topic:'Grammar MCQ',score:score,total:total,stars:stars});
+  window.location.href=hero.returnTo+'?hero='+encodeURIComponent(hero.name)+'&cls='+encodeURIComponent(hero.cls)+'&zone=gmcq&score='+score+'&total='+total+'&stars='+stars;
+}
+
+function restart(){qi=0;score=0;answered=false;submitted=false;document.getElementById('quizCard').style.display='block';document.getElementById('resultScreen').classList.remove('show');renderQ();}
+function goBack(){window.location.href=hero.returnTo+'?hero='+encodeURIComponent(hero.name)+'&cls='+encodeURIComponent(hero.cls);}
+
+renderQ();
+</script>
+</body>
+</html>
