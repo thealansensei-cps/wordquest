@@ -4,10 +4,7 @@
    ============================================================ */
 
 const SUPABASE_URL = 'https://zwdzvzvbotuuxxwtreqe.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3ZHp2enZib3R1dXh4d3RyZXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTcxMzA5MzIsImV4cCI6MTczMjY4MjkzMn0.abcdef'; // Placeholder - actual key below
-
-// Real anon key (from Supabase project settings)
-const REAL_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3ZHp2enZib3R1dXh4d3RyZXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTcxMzA5MzIsImV4cCI6MTczMjY4MjkzMn0.h4-FVGyFKBR0sXQs0K6HJ5aL9m2pQ8xR7vW3yZ1jK2s';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3ZHp2enZib3R1dXh4d3RyZXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxODE4NDgsImV4cCI6MjA5NTc1Nzg0OH0.vdg0BnrsiWv8AnRsr-4323Gz5FKps5DoArvDJKeQAr8';
 
 class SupabaseGamesClient {
   constructor(url, key) {
