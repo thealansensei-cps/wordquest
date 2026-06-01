@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#0D0F1A;--surface:#13162A;--surface2:#1A1F36;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);--text:#E8EAF6;--muted:rgba(232,234,246,0.45);--accent:#7C3AED;--accent2:#A78BFA;--teal:#34D399;--coral:#F87171;--radius:18px;--radius-sm:10px}
+:root{--bg:#0D0F1A;--surface:#13162A;--surface2:#1A1F36;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);--text:#E8EAF6;--muted:rgba(232,234,246,0.45);--accent:#7C3AED;--accent2:#A78BFA;--teal:#34D399;--coral:#F87171;--radius:18px}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;display:flex;align-items:center;justify-content:center}
 body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 20% -10%,rgba(124,58,237,.12) 0%,transparent 60%)}
 .wrap{max-width:500px;width:100%;padding:20px;position:relative;z-index:1}
@@ -59,7 +59,19 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
     <!-- Login Form -->
     <form id="loginForm" class="show" onsubmit="handleLogin(event)">
       <div class="form-group">
-        <label class="form-label">📚 Select Your Name</label>
+        <label class="form-label">🏠 Select Your Class</label>
+        <select id="classSelect" class="form-select" onchange="updateNameDropdown()" required>
+          <option value="">-- Choose your class --</option>
+          <option value="4 Care">4 Care</option>
+          <option value="4 Graciousness">4 Graciousness</option>
+          <option value="4 Integrity">4 Integrity</option>
+          <option value="4 Resilience">4 Resilience</option>
+          <option value="4 Respect">4 Respect</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">👤 Select Your Name</label>
         <select id="studentName" class="form-select" required>
           <option value="">-- Choose your name --</option>
         </select>
@@ -77,23 +89,16 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
 
     <!-- Create Password Form -->
     <form id="createPwForm" onsubmit="handleCreatePassword(event)">
-      <p style="text-align:center;margin-bottom:20px;font-size:13px;color:var(--muted)">Welcome! Complete your profile</p>
+      <p style="text-align:center;margin-bottom:20px;font-size:13px;color:var(--muted)">Welcome! Create your password</p>
       
       <div class="form-group">
-        <label class="form-label">👤 Name</label>
-        <input type="text" id="newStudentName" class="form-input" readonly style="opacity:0.7">
+        <label class="form-label">🏠 Class</label>
+        <input type="text" id="newClass" class="form-input" readonly style="opacity:0.7">
       </div>
 
       <div class="form-group">
-        <label class="form-label">🏠 Class</label>
-        <select id="newClass" class="form-select" required>
-          <option value="">-- Select your class --</option>
-          <option value="4 Care">4 Care</option>
-          <option value="4 Graciousness">4 Graciousness</option>
-          <option value="4 Integrity">4 Integrity</option>
-          <option value="4 Resilience">4 Resilience</option>
-          <option value="4 Respect">4 Respect</option>
-        </select>
+        <label class="form-label">👤 Name</label>
+        <input type="text" id="newStudentName" class="form-input" readonly style="opacity:0.7">
       </div>
 
       <div class="form-group">
@@ -114,7 +119,19 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
       <p style="text-align:center;margin-bottom:20px;font-size:13px;color:var(--muted)">🔑 Reset Student Password</p>
       
       <div class="form-group">
-        <label class="form-label">📚 Student Name</label>
+        <label class="form-label">🏠 Student Class</label>
+        <select id="resetClass" class="form-select" onchange="updateResetNameDropdown()" required>
+          <option value="">-- Select class --</option>
+          <option value="4 Care">4 Care</option>
+          <option value="4 Graciousness">4 Graciousness</option>
+          <option value="4 Integrity">4 Integrity</option>
+          <option value="4 Resilience">4 Resilience</option>
+          <option value="4 Respect">4 Respect</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">👤 Student Name</label>
         <select id="resetStudentName" class="form-select" required>
           <option value="">-- Select student --</option>
         </select>
@@ -142,92 +159,103 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
 
 <script>
 const CPS_P4_STUDENTS = {
-  '4 Integrity': [
-    'Aleya Apfadia', 'Phancay Nisha', 'Cheng Vue En Guinevere', 'Collin Alice Dorothy Marie',
-    'Daniel Cai Jeriah', 'Dave Lim Dou Teng', 'Quercethe Bryn Tallulus Chan Shan',
-    'Jeong Ichan', 'Joshua Chong Kwok Erin', 'Koh Kay Xuan Iris', 'Lee En Hui',
-    'Lim Durin', 'Lim Hui Yu', 'Max Guan Xuan', 'Martin Nerved',
-    'Muhammad Ubay Hyde Bin Muhammad Ali Putra', 'Nafisah Banah Binte Shamir',
-    'Naveen Singh Dhillon S/O Jasminder Singh Dhillon', 'Nikola Stoyanov',
-    'Noah Larva', 'Nur Naura Aaliyah Binte Muhammad Afiq', 'Omkar Vadhya Ramaswami',
-    'Ong Yan Zhe Jerric', 'Putri Nur Ifalna Binte Muhammad Ismail', 'Saddikyt Riyaz Aburin',
-    'Seow Yi Kun Matthew', 'Shaniah Lim', 'Si Rushen', 'Sim En Wei Javion',
-    'Si Rushen', 'Sim En Wei Javion', 'Sofia Maira Binte Mohammad Shafiee',
-    'Song Shofun', 'Sophie Anne Copland', 'Syed Ahmed Harris Mohamed Affan Kareem',
-    'Xu Ziuo', 'Syed Ahmed Harris Mohamed Affan Kareem', 'Xu Ziuo', 'Yuki Ito'
-  ],
-  '4 Resilience': [
-    'Agarawal Amay', 'Alessa Hana Winata', 'Bhone Thutta Paing', 'Cayvier Koh Zheng Jie',
-    'Chan Yen Ling Isabelle', 'Dashell Ong Yu Han', 'Daya Kaur D/O Sarbjit Singh',
-    'Ee Jun Qi Tristan', 'Eliyan/Ishriza Binte Muhammad Hasnaa', 'Gadanpreet Kaur D/O Hairpreet Singh Sidhu',
-    'He Chunqi', 'Isaac Lin Qixiang', 'Jaden Foo Yan Kai', 'Jayden Lee Tzu Le',
-    'Lim Serin', 'Lucas Low', 'Muhammad Elias Aasyah Fi Bin Muhammad Fairian',
-    'Muralidrishnan Harshkarthor', 'Nafha Jehaan', 'Nguyen Vi',
-    'Panchaygesan Sudhirshan', 'Rihan Sainkar', 'Shen Zhiyuan',
-    'Siddharth Panta', 'Sim Gek Boon Theodphane', 'Tiongcle Chanapat',
-    'Xiao Ya Ning Joanne', 'Xu Xiaochen', 'Xiao Ya Ning Joanne', 'Xu Xiaochen',
-    'Zaim Akli Ylia', 'Zoey Li'
+  '4 Care': [
+    'AARON JAMES MC HUGH', 'AMAY GOSSWAMI', 'AXTON SHANG FUSHENG',
+    'AYSEN BIN AZAHAR', 'AYSHA ALIYA AZRYN', 'CANDICE HO ZIHAN',
+    'CHAIA SHAN TING CELESTE', 'CLARA LILLIAN PEREIRA', 'DAI JATAI',
+    'DAO TUAN HUY HARVEY', 'ELIZABETH SURANEKHAN', 'HO DING KANG EDWARD',
+    'JAYDEN GOPI LEE JIE EN', 'MARCUS LISTENBERG', 'MASONI KOH SHAO YU',
+    'MAXENCE GARNIER', 'MUHAMMAD UMAR BIN AZZ AHMAD', 'NG ZI HAO JAMESON',
+    'NANSIMGHE SIENNA TARYN', 'SAHANA SARIN BINTE MUHAMMAD ARJF', 'SARIKA SANMAN SHETTY',
+    'SIM EN XUAN JERINA', 'SKYLER TAN GUAN MIN', 'SUHAIBUIL BIN SHAHRULL',
+    'THUZT LVAN MOE', 'VIKRANT KHAITAN', 'WONG YU MINN JULJAN',
+    'WONG ZIYING VERA', 'WONG YU MINN JULJAN', 'WONG ZIYING VERA',
+    'XIONG YIBAI', 'YU CHUN HEI KADEN'
   ],
   '4 Graciousness': [
-    'Aeni Adisya Binte Muhammad Azmanida', 'Agarwal Nishanth', 'Abdasti Aashinya Sii',
-    'Avalyn Ong Hui Qi', 'Cheong Yong Jun Wesley', 'Dominic Fong Yu Rin',
-    'Eric Hein Htet Kyaw', 'Gazi Avero', 'Glenda Lee En Le',
-    'Goh Khun Lee', 'Gu Everest', 'Hannah Loh Yu En',
-    'Hayley Kayleigh Longden', 'Jake Airjahn Thyagahajan', 'Kai Lyn Beevers',
-    'Kojima Shintaro', 'Liao Yixuan Lance', 'Lucas Cui Zhengping',
-    'Muhammad Adiyan Bin Muhammad Irwan', 'Nakanoshono Taiga', 'Shiro Heng Bao Nam',
-    'Oliver Joseph Lowe', 'Pastriana Marc Gabriel Hidaldo', 'Patel Vimaan Kiran',
-    'Schlager Leon Alexander', 'Shazeir Bin Muhammad Nizam', 'Tan Jing En Rex',
-    'Tan Jun Wei', 'Tan Jing En Rex', 'Tan Jun Wei', 'Wang Manteng',
-    'Wilson Peter Hah Wen'
+    'AENI ADISYA BINTE MUHAMMAD AZMANIDA', 'AGARWAL NISHANTH', 'ABDASTI AASHINYA SII',
+    'AVALYN ONG HUI QI', 'CHEONG YONG JUN WESLEY', 'DOMINIC FONG YU RIN',
+    'ERIC HEIN HTET KYAW', 'GAZI AVERO', 'GLENDA LEE EN LE',
+    'GOH KHUN LEE', 'GU EVEREST', 'HANNAH LOH YU EN',
+    'HAYLEY KAYLEIGH LONGDEN', 'JAKE AIRJAHN THYAGAHAJAN', 'KAI LYN BEEVERS',
+    'KOJIMA SHINTARO', 'LIAO YIXUAN LANCE', 'LUCAS CUI ZHENGPING',
+    'MUHAMMAD ADIYAN BIN MUHAMMAD IRWAN', 'NAKANOSHONO TAIGA', 'SHIRO HENG BAO NAM',
+    'OLIVER JOSEPH LOWE', 'PASTRIANA MARC GABRIEL HIDALDO', 'PATEL VIMAAN KIRAN',
+    'SCHLAGER LEON ALEXANDER', 'SHAZEIR BIN MUHAMMAD NIZAM', 'TAN JING EN REX',
+    'TAN JUN WEI', 'WANG MANTENG', 'WILSON PETER HAH WEN'
   ],
-  '4 Care': [
-    'Aaron James Mc Hugh', 'Amay Gosswami', 'Axton Shang Fusheng',
-    'Aysen Bin Azahar', 'Aysha Aliya Azryn', 'Candice Ho Zihan',
-    'Chaia Shan Ting Celeste', 'Clara Lillian Pereira', 'Dai Jatai',
-    'Dao Tuan Huy Harvey', 'Elizabeth Suranekhan', 'Ho Ding Kang Edward',
-    'Jayden Gopi Lee Jie En', 'Marcus Listenberg', 'Masoni Koh Shao Yu',
-    'Maxence Garnier', 'Muhammad Umar Bin Azz Ahmad', 'Ng Zi Hao Jameson',
-    'Nansimghe Sienna Taryn', 'Sahana Sarin Binte Muhammad Arjf', 'Sarika Sanman Shetty',
-    'Sim En Xuan Jerina', 'Skyler Tan Guan Min', 'Suhaibuil Bin Shahrull',
-    'Thuzt Lvan Moe', 'Vikrant Khaitan', 'Wong Yu Minn Juljan',
-    'Wong Ziying Vera', 'Wong Yu Minn Juljan', 'Wong Ziying Vera',
-    'Xiong Yibai', 'Yu Chun Hei Kaden'
+  '4 Integrity': [
+    'ALEYA APFADIA', 'PHANCAY NISHA', 'CHENG VUE EN GUINEVERE',
+    'COLLIN ALICE DOROTHY MARIE', 'DANIEL CAI JERIAH', 'DAVE LIM DOU TENG',
+    'QUERCETHE BRYN TALLULUS CHAN SHAN', 'JEONG ICHAN', 'JOSHUA CHONG KWOK ERIN',
+    'KOH KAY XUAN IRIS', 'LEE EN HUI', 'LIM DURIN',
+    'LIM HUI YU', 'MAX GUAN XUAN', 'MARTIN NERVED',
+    'MUHAMMAD UBAY HYDE BIN MUHAMMAD ALI PUTRA', 'NAFISAH BANAH BINTE SHAMIR',
+    'NAVEEN SINGH DHILLON S/O JASMINDER SINGH DHILLON', 'NIKOLA STOYANOV',
+    'NOAH LARVA', 'NUR NAURA AALIYAH BINTE MUHAMMAD AFIQ', 'OMKAR VADHYA RAMASWAMI',
+    'ONG YAN ZHE JERRIC', 'PUTRI NUR IFALNA BINTE MUHAMMAD ISMAIL', 'SADDIKYT RIYAZ ABURIN',
+    'SEOW YI KUN MATTHEW', 'SHANIAH LIM', 'SI RUSHEN',
+    'SIM EN WEI JAVION', 'SOFIA MAIRA BINTE MOHAMMAD SHAFIEE', 'SONG SHOFUN',
+    'SOPHIE ANNE COPLAND', 'SYED AHMED HARRIS MOHAMED AFFAN KAREEM', 'XU ZIUO', 'YUKI ITO'
+  ],
+  '4 Resilience': [
+    'AGARWAL AMAY', 'ALESSA HANA WINATA', 'BHONE THUITA PAING',
+    'CAYVIER KOH ZHENG JIE', 'CHAN YEN LING ISABELLE', 'DASHELL ONG YU HAN',
+    'DAYA KAUR D/O SARBJIT SINGH', 'EE JUN QI TRISTAN', 'ELIYAN ISHRIZA BINTE MUHAMMAD HASNAA',
+    'GADANPREET KAUR D/O HAIRPREET SINGH SIDHU', 'HE CHUNQI', 'ISAAC LIN QIXIANG',
+    'JADEN FOO YAN KAI', 'JAYDEN LEE TZU LE', 'LIM SERIN',
+    'LUCAS LOW', 'MUHAMMAD ELIAS AASYAH FI BIN MUHAMMAD FAIRIAN', 'MURALIDRISHNAN HARSHKARTHOR',
+    'NAFHA JEHAAN', 'NGUYEN VI', 'PANCHAYGESAN SUDHIRSHAN',
+    'RIHAN SAINKAR', 'SHEN ZHIYUAN', 'SIDDHARTH PANTA',
+    'SIM GECK BOON THEODPHANE', 'TIONGCLE CHANAPAT', 'XIAO YA NING JOANNE',
+    'XU XIAOCHEN', 'ZAIM AKLI YLIA', 'ZOEY LI'
   ],
   '4 Respect': [
-    'Agarwal Ramanobi Harish', 'Arul Lourdhuraj Steevejoe', 'Benjamin Wong Guanlin',
-    'Du Zheonheng', 'Hamzah Bin Bachtiar', 'Jade Louise Boisseau',
-    'Jake Ang Jia Le', 'Jia Zekai', 'Julia Thant Sin',
-    'Kaiden Chua De Rong', 'Lauryn Grace Overy', 'Lee Ha Jun',
-    'Lauryn Grace Overy', 'Lee Ha Jun', 'Lee Seung Woo',
-    'Lin Mu Chen', 'Lin Xuan Ying Karisa', 'Lye Park Yu',
-    'Mathilde Tay', 'Muhammad Damer Sky Bin Muhammad Shahril Amen',
-    'Naguilan Ravishaker', 'Nur Uraihah Putri Putra', 'Ong Wei Ting Chloe',
-    'Pham Minh Khanh Chi', 'Shayerin Airsita Cuaca', 'Shivangh Jain',
-    'Tay Zhe Yuan Eric', 'Thasane Amaan Rohit', 'Toh Jing Xuan Joslyn',
-    'Wang Haige', 'Warren Chen Boyuan', 'Wigutti Joaquin',
-    'Xie Danyang'
+    'AGARWAL RAMANOBI HARISH', 'ARUL LOURDHURAJ STEEVEJOE', 'BENJAMIN WONG GUANLIN',
+    'DU ZHEONHENG', 'HAMZAH BIN BACHTIAR', 'JADE LOUISE BOISSEAU',
+    'JAKE ANG JIA LE', 'JIA ZEKAI', 'JULIA THANT SIN',
+    'KAIDEN CHUA DE RONG', 'LAURYN GRACE OVERY', 'LEE HAJUN',
+    'LEE SEUNG WOO', 'LIN MU CHEN', 'LIN XUAN YING KARISA',
+    'LYE PARK YU', 'MATHILDA TAY', 'MUHAMMAD DAMER SKY BIN MUHAMMAD SHAHRIL AMEN',
+    'NAGUILAN RAVISHANKAR', 'NUR URAIHAH PUTRI PUTRA', 'ONG WEI TING CHLOE',
+    'PHAM MINH KHANH CHI', 'SHAYERIN AIRSHTA CUACA', 'SHIVANGH JAIN',
+    'TAY ZHE YUAN ERIC', 'THAGANE AMAAN ROHIT', 'TOH JING XUAN JOSLYN',
+    'WANG HAIEE', 'WARREN CHEN BOYUAN', 'WIGUTTI JOAQUIN',
+    'XIE DANYANG'
   ]
 };
 
 const SUPABASE_URL = 'https://zwdzvzvbotuuxxwtreqe.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3ZHp2enZib3R1dXh4d3RyZXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxODE4NDgsImV4cCI6MjA5NTc1Nzg0OH0.vdg0BnrsiWv8AnRsr-4323Gz5FKps5DoArvDJKeQAr8';
 
-function initDropdowns() {
-  const select1 = document.getElementById('studentName');
-  const select2 = document.getElementById('resetStudentName');
+function updateNameDropdown() {
+  const cls = document.getElementById('classSelect').value;
+  const select = document.getElementById('studentName');
+  select.innerHTML = '<option value="">-- Choose your name --</option>';
   
-  Object.values(CPS_P4_STUDENTS).flat().forEach(name => {
-    const opt1 = document.createElement('option');
-    opt1.value = name;
-    opt1.textContent = name;
-    select1.appendChild(opt1);
+  if (cls && CPS_P4_STUDENTS[cls]) {
+    CPS_P4_STUDENTS[cls].forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      select.appendChild(opt);
+    });
+  }
+}
 
-    const opt2 = document.createElement('option');
-    opt2.value = name;
-    opt2.textContent = name;
-    select2.appendChild(opt2);
-  });
+function updateResetNameDropdown() {
+  const cls = document.getElementById('resetClass').value;
+  const select = document.getElementById('resetStudentName');
+  select.innerHTML = '<option value="">-- Select student --</option>';
+  
+  if (cls && CPS_P4_STUDENTS[cls]) {
+    CPS_P4_STUDENTS[cls].forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      select.appendChild(opt);
+    });
+  }
 }
 
 function showMessage(msg, type) {
@@ -239,6 +267,7 @@ function showMessage(msg, type) {
 
 async function handleLogin(e) {
   e.preventDefault();
+  const cls = document.getElementById('classSelect').value;
   const name = document.getElementById('studentName').value;
   const pwd = document.getElementById('password').value;
 
@@ -249,6 +278,7 @@ async function handleLogin(e) {
     const rows = await res.json();
 
     if (rows.length === 0) {
+      document.getElementById('newClass').value = cls;
       document.getElementById('newStudentName').value = name;
       document.getElementById('loginForm').classList.remove('show');
       document.getElementById('createPwForm').classList.add('show');
@@ -258,8 +288,8 @@ async function handleLogin(e) {
 
     const auth = rows[0];
     if (auth.password_hash === hashPassword(pwd)) {
-      localStorage.setItem('student', JSON.stringify({name, class: auth.class_name}));
-      window.location.href = 'games-hub.html?hero=' + encodeURIComponent(name) + '&cls=' + encodeURIComponent(auth.class_name);
+      localStorage.setItem('student', JSON.stringify({name, class: cls}));
+      window.location.href = 'games-hub.html?hero=' + encodeURIComponent(name) + '&cls=' + encodeURIComponent(cls);
     } else {
       showMessage('❌ Incorrect password', 'error');
     }
@@ -271,8 +301,8 @@ async function handleLogin(e) {
 
 async function handleCreatePassword(e) {
   e.preventDefault();
-  const name = document.getElementById('newStudentName').value;
   const cls = document.getElementById('newClass').value;
+  const name = document.getElementById('newStudentName').value;
   const pw1 = document.getElementById('newPassword').value;
   const pw2 = document.getElementById('confirmPassword').value;
 
@@ -366,7 +396,9 @@ function hashPassword(pw) {
   return 'hash_' + Math.abs(hash).toString(36);
 }
 
-window.addEventListener('DOMContentLoaded', initDropdowns);
+window.addEventListener('DOMContentLoaded', () => {
+  // Initialize
+});
 </script>
 </body>
 </html>
