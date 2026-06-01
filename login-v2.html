@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WordQuest Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0D0F1A;--surface:#13162A;--surface2:#1A1F36;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);--text:#E8EAF6;--muted:rgba(232,234,246,0.45);--accent:#7C3AED;--accent2:#A78BFA;--teal:#34D399;--coral:#F87171;--radius:18px;--radius-sm:10px}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;display:flex;align-items:center;justify-content:center}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 20% -10%,rgba(124,58,237,.12) 0%,transparent 60%)}
+.wrap{max-width:500px;width:100%;padding:20px;position:relative;z-index:1}
+.hdr{text-align:center;padding:28px 0 32px}
+.hdr-logo{width:80px;height:80px;background:linear-gradient(135deg,var(--accent),#6D28D9);border-radius:24px;display:inline-flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:20px;box-shadow:0 8px 32px rgba(124,58,237,.35);animation:float 4s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-8px) rotate(1deg)}}
+.hdr-title{font-family:'Instrument Serif',serif;font-size:36px;font-weight:400;color:#fff;margin-bottom:8px}
+.hdr-title span{color:var(--accent2);font-style:italic}
+.hdr-sub{font-size:13px;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:32px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent)}
+.form-group{margin-bottom:20px}
+.form-label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent2);margin-bottom:8px}
+.form-input,.form-select{width:100%;background:var(--surface2);border:1.5px solid var(--border2);border-radius:11px;padding:12px 16px;font-family:inherit;font-size:13px;color:var(--text);transition:all .2s}
+.form-input:focus,.form-select:focus{outline:none;border-color:var(--accent);background:rgba(124,58,237,.1)}
+.form-select option{background:var(--surface);color:var(--text)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;width:100%;border:none;border-radius:11px;padding:14px 22px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#8B5CF6);color:#fff;box-shadow:0 4px 18px rgba(124,58,237,.4)}
+.btn-primary:hover{transform:translateY(-2px);filter:brightness(1.08)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-ghost{background:rgba(255,255,255,.06);border:1px solid var(--border2);color:var(--text);margin-top:12px}
+.btn-ghost:hover{background:rgba(255,255,255,.13);color:var(--accent2)}
+.msg{padding:12px 16px;border-radius:11px;font-size:13px;margin-bottom:16px;display:none}
+.msg.show{display:block}
+.msg.error{background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.3);color:var(--coral)}
+.msg.success{background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.3);color:var(--teal)}
+.divider{text-align:center;margin:20px 0;font-size:12px;color:var(--muted)}
+.divider::before{content:'';display:block;height:1px;background:var(--border);margin-bottom:12px}
+.divider::after{content:'';display:block;height:1px;background:var(--border);margin-top:12px}
+.text-center{text-align:center;font-size:12px;color:var(--muted);margin-top:16px}
+.text-center a{color:var(--accent2);text-decoration:none;font-weight:600}
+.text-center a:hover{text-decoration:underline}
+#loginForm,#createPwForm,#resetPwForm{display:none}
+#loginForm.show,#createPwForm.show,#resetPwForm.show{display:block}
+.hint{font-size:11px;color:var(--muted);margin-top:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <div class="hdr-logo">🏝️</div>
+    <h1 class="hdr-title">Word<span>Quest</span></h1>
+    <p class="hdr-sub">P4 English Learning Game</p>
+  </div>
+
+  <div class="card">
+    <div id="message" class="msg"></div>
+
+    <!-- Login Form -->
+    <form id="loginForm" class="show" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label class="form-label">📚 Select Your Name</label>
+        <select id="studentName" class="form-select" required>
+          <option value="">-- Choose your name --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">🔐 Password</label>
+        <input type="password" id="password" class="form-input" placeholder="Enter your password" required>
+        <div class="hint">Forgot password? Contact your teacher</div>
+      </div>
+
+      <button type="submit" class="btn btn-primary">🎮 Log In</button>
+      <p class="text-center">New student? Your password will be created after first login</p>
+    </form>
+
+    <!-- Create Password Form -->
+    <form id="createPwForm" onsubmit="handleCreatePassword(event)">
+      <p style="text-align:center;margin-bottom:20px;font-size:13px;color:var(--muted)">Welcome! Create your password</p>
+      
+      <div class="form-group">
+        <label class="form-label">👤 Name</label>
+        <input type="text" id="newStudentName" class="form-input" readonly style="opacity:0.7">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">🔐 Create Password</label>
+        <input type="password" id="newPassword" class="form-input" placeholder="At least 6 characters" required minlength="6">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">🔐 Confirm Password</label>
+        <input type="password" id="confirmPassword" class="form-input" placeholder="Re-enter password" required minlength="6">
+      </div>
+
+      <button type="submit" class="btn btn-primary">✅ Create Password</button>
+    </form>
+
+    <!-- Reset Password Form (Teacher) -->
+    <form id="resetPwForm" onsubmit="handleResetPassword(event)">
+      <p style="text-align:center;margin-bottom:20px;font-size:13px;color:var(--muted)">🔑 Reset Student Password</p>
+      
+      <div class="form-group">
+        <label class="form-label">📚 Student Name</label>
+        <select id="resetStudentName" class="form-select" required>
+          <option value="">-- Select student --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">🔐 New Temporary Password</label>
+        <input type="text" id="tempPassword" class="form-input" placeholder="e.g., temp123" required>
+        <div class="hint">Student will change this on next login</div>
+      </div>
+
+      <button type="submit" class="btn btn-primary">🔄 Reset Password</button>
+      <button type="button" class="btn btn-ghost" onclick="switchToLogin()">← Back to Login</button>
+    </form>
+
+    <div class="divider"></div>
+
+    <div id="loginSection">
+      <p class="text-center">
+        Are you a teacher? <a href="javascript:switchToReset()">Reset Student Password</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script src="https://zwdzvzvbotuuxxwtreqe.supabase.co/rest/v1/"></script>
+<script>
+// CPS P4 Student Roster (160 students, 5 houses)
+const CPS_P4_STUDENTS = [
+  // 4 Care (31 students)
+  'Aisha Care', 'Benjamin Care', 'Chloe Care', 'David Care', 'Emma Care',
+  'Farah Care', 'Gabriel Care', 'Hannah Care', 'Isaac Care', 'Jasmine Care',
+  'Kevin Care', 'Lena Care', 'Marcus Care', 'Nina Care', 'Oliver Care',
+  'Priya Care', 'Quinn Care', 'Raj Care', 'Sofia Care', 'Thomas Care',
+  'Uma Care', 'Victor Care', 'Winnie Care', 'Xavier Care', 'Yara Care',
+  'Zoe Care', 'Aden Care', 'Bella Care', 'Chris Care', 'Diana Care', 'Ethan Care',
+
+  // 4 Graciousness (32 students)
+  'Amara Grace', 'Blake Grace', 'Cara Grace', 'Danny Grace', 'Elise Grace',
+  'Felix Grace', 'Gina Grace', 'Henry Grace', 'Iris Grace', 'Jacob Grace',
+  'Kara Grace', 'Leo Grace', 'Mia Grace', 'Noah Grace', 'Olivia Grace',
+  'Pablo Grace', 'Quinn Grace', 'Ryan Grace', 'Sara Grace', 'Tasha Grace',
+  'Uma Grace', 'Vincent Grace', 'Whitney Grace', 'Xander Grace', 'Yuki Grace',
+  'Zara Grace', 'Aaron Grace', 'Brooke Grace', 'Cole Grace', 'Daisy Grace',
+  'Evan Grace', 'Fiona Grace',
+
+  // 4 Integrity (34 students)
+  'Alan Integrity', 'Bianca Integrity', 'Carlos Integrity', 'Diana Integrity', 'Ezra Integrity',
+  'Freya Integrity', 'George Integrity', 'Harper Integrity', 'Ivan Integrity', 'Julia Integrity',
+  'Kevin Integrity', 'Luna Integrity', 'Max Integrity', 'Nora Integrity', 'Oscar Integrity',
+  'Piper Integrity', 'Quinn Integrity', 'Rowan Integrity', 'Sage Integrity', 'Taylor Integrity',
+  'Umber Integrity', 'Vale Integrity', 'Wesley Integrity', 'Xavier Integrity', 'Yasmine Integrity',
+  'Ziggy Integrity', 'Amos Integrity', 'Bailey Integrity', 'Casey Integrity', 'Dante Integrity',
+  'Everett Integrity', 'Finley Integrity', 'Greyson Integrity', 'Hunter Integrity',
+
+  // 4 Resilience (32 students)
+  'Aurora Resilience', 'Bryce Resilience', 'Camilla Resilience', 'Dashiell Resilience', 'Emilia Resilience',
+  'Fabien Resilience', 'Gemma Resilience', 'Heath Resilience', 'Ivy Resilience', 'Jude Resilience',
+  'Kaia Resilience', 'Liam Resilience', 'Matilda Resilience', 'Nathaniel Resilience', 'Octavia Resilience',
+  'Paige Resilience', 'Quinlan Resilience', 'Rory Resilience', 'Sienna Resilience', 'Tara Resilience',
+  'Ulysses Resilience', 'Vera Resilience', 'Wyatt Resilience', 'Xenia Resilience', 'Yale Resilience',
+  'Zoey Resilience', 'Adrian Resilience', 'Bridget Resilience', 'Chester Resilience', 'Dallas Resilience',
+  'Edith Resilience', 'Foster Resilience',
+
+  // 4 Respect (31 students)
+  'Adelaide Respect', 'Bentley Respect', 'Callista Respect', 'Dashwood Respect', 'Elowen Respect',
+  'Faye Respect', 'Garrett Respect', 'Hadley Respect', 'Iris Respect', 'Jasper Respect',
+  'Kelsey Respect', 'Lennox Respect', 'Morgan Respect', 'Natasha Respect', 'Oakley Respect',
+  'Paisley Respect', 'Quincy Respect', 'River Respect', 'Sloane Respect', 'Thea Respect',
+  'Ulrick Respect', 'Vivienne Respect', 'Wade Respect', 'Xandra Respect', 'Yolanda Respect',
+  'Zeke Respect', 'Arabella Respect', 'Benson Respect', 'Catalina Respect', 'Dashiell Respect', 'Everly Respect'
+];
+
+const SUPABASE_URL = 'https://zwdzvzvbotuuxxwtreqe.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3ZHp2enZib3R1dXh4d3RyZXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxODE4NDgsImV4cCI6MjA5NTc1Nzg0OH0.vdg0BnrsiWv8AnRsr-4323Gz5FKps5DoArvDJKeQAr8';
+
+// Initialize dropdowns
+function initDropdowns() {
+  const select1 = document.getElementById('studentName');
+  const select2 = document.getElementById('resetStudentName');
+  
+  CPS_P4_STUDENTS.forEach(name => {
+    const opt1 = document.createElement('option');
+    opt1.value = name;
+    opt1.textContent = name;
+    select1.appendChild(opt1);
+
+    const opt2 = document.createElement('option');
+    opt2.value = name;
+    opt2.textContent = name;
+    select2.appendChild(opt2);
+  });
+}
+
+function showMessage(msg, type) {
+  const el = document.getElementById('message');
+  el.textContent = msg;
+  el.className = 'msg show ' + type;
+  setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const name = document.getElementById('studentName').value;
+  const pwd = document.getElementById('password').value;
+
+  try {
+    // Check if student exists in auth table
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/student_auth?student_name=eq.${encodeURIComponent(name)}`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    const rows = await res.json();
+
+    if (rows.length === 0) {
+      // New student - show create password form
+      document.getElementById('newStudentName').value = name;
+      document.getElementById('loginForm').classList.remove('show');
+      document.getElementById('createPwForm').classList.add('show');
+      document.getElementById('loginSection').style.display = 'none';
+      return;
+    }
+
+    // Existing student - verify password
+    const auth = rows[0];
+    if (auth.password_hash === hashPassword(pwd)) {
+      // Login success
+      localStorage.setItem('student', JSON.stringify({name, class: auth.class_name}));
+      window.location.href = 'games-hub.html?hero=' + encodeURIComponent(name) + '&cls=' + encodeURIComponent(auth.class_name);
+    } else {
+      showMessage('❌ Incorrect password', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showMessage('⚠️ Error logging in', 'error');
+  }
+}
+
+async function handleCreatePassword(e) {
+  e.preventDefault();
+  const name = document.getElementById('newStudentName').value;
+  const pw1 = document.getElementById('newPassword').value;
+  const pw2 = document.getElementById('confirmPassword').value;
+
+  if (pw1 !== pw2) {
+    showMessage('❌ Passwords do not match', 'error');
+    return;
+  }
+
+  try {
+    // Extract class from student name (last word)
+    const classMatch = name.match(/(\d Integrity|\d Care|\d Graciousness|\d Resilience|\d Respect)$/);
+    const cls = classMatch ? classMatch[0] : '4 Integrity';
+
+    // Create auth record
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/student_auth`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      },
+      body: JSON.stringify({
+        student_name: name,
+        class_name: cls,
+        password_hash: hashPassword(pw1),
+        created_at: new Date().toISOString()
+      })
+    });
+
+    if (res.ok) {
+      showMessage('✅ Password created! Logging in...', 'success');
+      setTimeout(() => {
+        localStorage.setItem('student', JSON.stringify({name, class: cls}));
+        window.location.href = 'games-hub.html?hero=' + encodeURIComponent(name) + '&cls=' + encodeURIComponent(cls);
+      }, 1000);
+    } else {
+      showMessage('⚠️ Error creating password', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showMessage('⚠️ Error creating password', 'error');
+  }
+}
+
+async function handleResetPassword(e) {
+  e.preventDefault();
+  const name = document.getElementById('resetStudentName').value;
+  const tempPw = document.getElementById('tempPassword').value;
+
+  try {
+    // Update password in auth table
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/student_auth?student_name=eq.${encodeURIComponent(name)}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      },
+      body: JSON.stringify({
+        password_hash: hashPassword(tempPw)
+      })
+    });
+
+    if (res.ok) {
+      showMessage(`✅ Password reset to "${tempPw}" for ${name}`, 'success');
+      document.getElementById('resetPwForm').reset();
+      setTimeout(() => switchToLogin(), 2000);
+    } else {
+      showMessage('⚠️ Student not found or error resetting password', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showMessage('⚠️ Error resetting password', 'error');
+  }
+}
+
+function switchToReset() {
+  document.getElementById('loginForm').classList.remove('show');
+  document.getElementById('resetPwForm').classList.add('show');
+  document.getElementById('loginSection').style.display = 'none';
+}
+
+function switchToLogin() {
+  document.getElementById('loginForm').classList.add('show');
+  document.getElementById('createPwForm').classList.remove('show');
+  document.getElementById('resetPwForm').classList.remove('show');
+  document.getElementById('loginSection').style.display = 'block';
+  document.getElementById('loginForm').reset();
+}
+
+// Simple hash function (NOT production-grade - for demo only)
+function hashPassword(pw) {
+  let hash = 0;
+  for (let i = 0; i < pw.length; i++) {
+    hash = ((hash << 5) - hash) + pw.charCodeAt(i);
+    hash = hash & hash;
+  }
+  return 'hash_' + Math.abs(hash).toString(36);
+}
+
+// Initialize on load
+window.addEventListener('DOMContentLoaded', initDropdowns);
+</script>
+</body>
+</html>

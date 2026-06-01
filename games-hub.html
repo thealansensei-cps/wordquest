@@ -65,6 +65,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
       <div class="hero-cls" id="heroCls"></div>
     </div>
     <div class="hero-actions">
+      <a href="leaderboard.html" class="btn-change" style="text-decoration:none">🏆 Leaderboard</a>
       <button class="btn-change" onclick="changeHero()">Change Hero</button>
       <button class="btn-logout" onclick="logout()">Logout</button>
     </div>
@@ -73,7 +74,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
   <div id="loginPrompt" style="display:none" class="login-prompt">
     <div class="login-title">⚠️ Not Logged In</div>
     <p class="login-text">Log in with your name to save your scores and see leaderboards.</p>
-    <button class="btn-login" onclick="showLoginModal()">🎮 Log In Now</button>
+    <a href="login-v2.html" class="btn-login" style="text-decoration:none">🎮 Log In Now</a>
   </div>
 
   <div class="info-box">
