@@ -77,11 +77,23 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
 
     <!-- Create Password Form -->
     <form id="createPwForm" onsubmit="handleCreatePassword(event)">
-      <p style="text-align:center;margin-bottom:20px;font-size:13px;color:var(--muted)">Welcome! Create your password</p>
+      <p style="text-align:center;margin-bottom:20px;font-size:13px;color:var(--muted)">Welcome! Complete your profile</p>
       
       <div class="form-group">
         <label class="form-label">👤 Name</label>
         <input type="text" id="newStudentName" class="form-input" readonly style="opacity:0.7">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">🏠 Class</label>
+        <select id="newClass" class="form-select" required>
+          <option value="">-- Select your class --</option>
+          <option value="4 Care">4 Care</option>
+          <option value="4 Graciousness">4 Graciousness</option>
+          <option value="4 Integrity">4 Integrity</option>
+          <option value="4 Resilience">4 Resilience</option>
+          <option value="4 Respect">4 Respect</option>
+        </select>
       </div>
 
       <div class="form-group">
@@ -94,7 +106,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
         <input type="password" id="confirmPassword" class="form-input" placeholder="Re-enter password" required minlength="6">
       </div>
 
-      <button type="submit" class="btn btn-primary">✅ Create Password</button>
+      <button type="submit" class="btn btn-primary">✅ Create Account</button>
     </form>
 
     <!-- Reset Password Form (Teacher) -->
@@ -128,63 +140,84 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
   </div>
 </div>
 
-<script src="https://zwdzvzvbotuuxxwtreqe.supabase.co/rest/v1/"></script>
 <script>
-// CPS P4 Student Roster (160 students, 5 houses)
-const CPS_P4_STUDENTS = [
-  // 4 Care (31 students)
-  'Aisha Care', 'Benjamin Care', 'Chloe Care', 'David Care', 'Emma Care',
-  'Farah Care', 'Gabriel Care', 'Hannah Care', 'Isaac Care', 'Jasmine Care',
-  'Kevin Care', 'Lena Care', 'Marcus Care', 'Nina Care', 'Oliver Care',
-  'Priya Care', 'Quinn Care', 'Raj Care', 'Sofia Care', 'Thomas Care',
-  'Uma Care', 'Victor Care', 'Winnie Care', 'Xavier Care', 'Yara Care',
-  'Zoe Care', 'Aden Care', 'Bella Care', 'Chris Care', 'Diana Care', 'Ethan Care',
-
-  // 4 Graciousness (32 students)
-  'Amara Grace', 'Blake Grace', 'Cara Grace', 'Danny Grace', 'Elise Grace',
-  'Felix Grace', 'Gina Grace', 'Henry Grace', 'Iris Grace', 'Jacob Grace',
-  'Kara Grace', 'Leo Grace', 'Mia Grace', 'Noah Grace', 'Olivia Grace',
-  'Pablo Grace', 'Quinn Grace', 'Ryan Grace', 'Sara Grace', 'Tasha Grace',
-  'Uma Grace', 'Vincent Grace', 'Whitney Grace', 'Xander Grace', 'Yuki Grace',
-  'Zara Grace', 'Aaron Grace', 'Brooke Grace', 'Cole Grace', 'Daisy Grace',
-  'Evan Grace', 'Fiona Grace',
-
-  // 4 Integrity (34 students)
-  'Alan Integrity', 'Bianca Integrity', 'Carlos Integrity', 'Diana Integrity', 'Ezra Integrity',
-  'Freya Integrity', 'George Integrity', 'Harper Integrity', 'Ivan Integrity', 'Julia Integrity',
-  'Kevin Integrity', 'Luna Integrity', 'Max Integrity', 'Nora Integrity', 'Oscar Integrity',
-  'Piper Integrity', 'Quinn Integrity', 'Rowan Integrity', 'Sage Integrity', 'Taylor Integrity',
-  'Umber Integrity', 'Vale Integrity', 'Wesley Integrity', 'Xavier Integrity', 'Yasmine Integrity',
-  'Ziggy Integrity', 'Amos Integrity', 'Bailey Integrity', 'Casey Integrity', 'Dante Integrity',
-  'Everett Integrity', 'Finley Integrity', 'Greyson Integrity', 'Hunter Integrity',
-
-  // 4 Resilience (32 students)
-  'Aurora Resilience', 'Bryce Resilience', 'Camilla Resilience', 'Dashiell Resilience', 'Emilia Resilience',
-  'Fabien Resilience', 'Gemma Resilience', 'Heath Resilience', 'Ivy Resilience', 'Jude Resilience',
-  'Kaia Resilience', 'Liam Resilience', 'Matilda Resilience', 'Nathaniel Resilience', 'Octavia Resilience',
-  'Paige Resilience', 'Quinlan Resilience', 'Rory Resilience', 'Sienna Resilience', 'Tara Resilience',
-  'Ulysses Resilience', 'Vera Resilience', 'Wyatt Resilience', 'Xenia Resilience', 'Yale Resilience',
-  'Zoey Resilience', 'Adrian Resilience', 'Bridget Resilience', 'Chester Resilience', 'Dallas Resilience',
-  'Edith Resilience', 'Foster Resilience',
-
-  // 4 Respect (31 students)
-  'Adelaide Respect', 'Bentley Respect', 'Callista Respect', 'Dashwood Respect', 'Elowen Respect',
-  'Faye Respect', 'Garrett Respect', 'Hadley Respect', 'Iris Respect', 'Jasper Respect',
-  'Kelsey Respect', 'Lennox Respect', 'Morgan Respect', 'Natasha Respect', 'Oakley Respect',
-  'Paisley Respect', 'Quincy Respect', 'River Respect', 'Sloane Respect', 'Thea Respect',
-  'Ulrick Respect', 'Vivienne Respect', 'Wade Respect', 'Xandra Respect', 'Yolanda Respect',
-  'Zeke Respect', 'Arabella Respect', 'Benson Respect', 'Catalina Respect', 'Dashiell Respect', 'Everly Respect'
-];
+const CPS_P4_STUDENTS = {
+  '4 Integrity': [
+    'Aleya Apfadia', 'Phancay Nisha', 'Cheng Vue En Guinevere', 'Collin Alice Dorothy Marie',
+    'Daniel Cai Jeriah', 'Dave Lim Dou Teng', 'Quercethe Bryn Tallulus Chan Shan',
+    'Jeong Ichan', 'Joshua Chong Kwok Erin', 'Koh Kay Xuan Iris', 'Lee En Hui',
+    'Lim Durin', 'Lim Hui Yu', 'Max Guan Xuan', 'Martin Nerved',
+    'Muhammad Ubay Hyde Bin Muhammad Ali Putra', 'Nafisah Banah Binte Shamir',
+    'Naveen Singh Dhillon S/O Jasminder Singh Dhillon', 'Nikola Stoyanov',
+    'Noah Larva', 'Nur Naura Aaliyah Binte Muhammad Afiq', 'Omkar Vadhya Ramaswami',
+    'Ong Yan Zhe Jerric', 'Putri Nur Ifalna Binte Muhammad Ismail', 'Saddikyt Riyaz Aburin',
+    'Seow Yi Kun Matthew', 'Shaniah Lim', 'Si Rushen', 'Sim En Wei Javion',
+    'Si Rushen', 'Sim En Wei Javion', 'Sofia Maira Binte Mohammad Shafiee',
+    'Song Shofun', 'Sophie Anne Copland', 'Syed Ahmed Harris Mohamed Affan Kareem',
+    'Xu Ziuo', 'Syed Ahmed Harris Mohamed Affan Kareem', 'Xu Ziuo', 'Yuki Ito'
+  ],
+  '4 Resilience': [
+    'Agarawal Amay', 'Alessa Hana Winata', 'Bhone Thutta Paing', 'Cayvier Koh Zheng Jie',
+    'Chan Yen Ling Isabelle', 'Dashell Ong Yu Han', 'Daya Kaur D/O Sarbjit Singh',
+    'Ee Jun Qi Tristan', 'Eliyan/Ishriza Binte Muhammad Hasnaa', 'Gadanpreet Kaur D/O Hairpreet Singh Sidhu',
+    'He Chunqi', 'Isaac Lin Qixiang', 'Jaden Foo Yan Kai', 'Jayden Lee Tzu Le',
+    'Lim Serin', 'Lucas Low', 'Muhammad Elias Aasyah Fi Bin Muhammad Fairian',
+    'Muralidrishnan Harshkarthor', 'Nafha Jehaan', 'Nguyen Vi',
+    'Panchaygesan Sudhirshan', 'Rihan Sainkar', 'Shen Zhiyuan',
+    'Siddharth Panta', 'Sim Gek Boon Theodphane', 'Tiongcle Chanapat',
+    'Xiao Ya Ning Joanne', 'Xu Xiaochen', 'Xiao Ya Ning Joanne', 'Xu Xiaochen',
+    'Zaim Akli Ylia', 'Zoey Li'
+  ],
+  '4 Graciousness': [
+    'Aeni Adisya Binte Muhammad Azmanida', 'Agarwal Nishanth', 'Abdasti Aashinya Sii',
+    'Avalyn Ong Hui Qi', 'Cheong Yong Jun Wesley', 'Dominic Fong Yu Rin',
+    'Eric Hein Htet Kyaw', 'Gazi Avero', 'Glenda Lee En Le',
+    'Goh Khun Lee', 'Gu Everest', 'Hannah Loh Yu En',
+    'Hayley Kayleigh Longden', 'Jake Airjahn Thyagahajan', 'Kai Lyn Beevers',
+    'Kojima Shintaro', 'Liao Yixuan Lance', 'Lucas Cui Zhengping',
+    'Muhammad Adiyan Bin Muhammad Irwan', 'Nakanoshono Taiga', 'Shiro Heng Bao Nam',
+    'Oliver Joseph Lowe', 'Pastriana Marc Gabriel Hidaldo', 'Patel Vimaan Kiran',
+    'Schlager Leon Alexander', 'Shazeir Bin Muhammad Nizam', 'Tan Jing En Rex',
+    'Tan Jun Wei', 'Tan Jing En Rex', 'Tan Jun Wei', 'Wang Manteng',
+    'Wilson Peter Hah Wen'
+  ],
+  '4 Care': [
+    'Aaron James Mc Hugh', 'Amay Gosswami', 'Axton Shang Fusheng',
+    'Aysen Bin Azahar', 'Aysha Aliya Azryn', 'Candice Ho Zihan',
+    'Chaia Shan Ting Celeste', 'Clara Lillian Pereira', 'Dai Jatai',
+    'Dao Tuan Huy Harvey', 'Elizabeth Suranekhan', 'Ho Ding Kang Edward',
+    'Jayden Gopi Lee Jie En', 'Marcus Listenberg', 'Masoni Koh Shao Yu',
+    'Maxence Garnier', 'Muhammad Umar Bin Azz Ahmad', 'Ng Zi Hao Jameson',
+    'Nansimghe Sienna Taryn', 'Sahana Sarin Binte Muhammad Arjf', 'Sarika Sanman Shetty',
+    'Sim En Xuan Jerina', 'Skyler Tan Guan Min', 'Suhaibuil Bin Shahrull',
+    'Thuzt Lvan Moe', 'Vikrant Khaitan', 'Wong Yu Minn Juljan',
+    'Wong Ziying Vera', 'Wong Yu Minn Juljan', 'Wong Ziying Vera',
+    'Xiong Yibai', 'Yu Chun Hei Kaden'
+  ],
+  '4 Respect': [
+    'Agarwal Ramanobi Harish', 'Arul Lourdhuraj Steevejoe', 'Benjamin Wong Guanlin',
+    'Du Zheonheng', 'Hamzah Bin Bachtiar', 'Jade Louise Boisseau',
+    'Jake Ang Jia Le', 'Jia Zekai', 'Julia Thant Sin',
+    'Kaiden Chua De Rong', 'Lauryn Grace Overy', 'Lee Ha Jun',
+    'Lauryn Grace Overy', 'Lee Ha Jun', 'Lee Seung Woo',
+    'Lin Mu Chen', 'Lin Xuan Ying Karisa', 'Lye Park Yu',
+    'Mathilde Tay', 'Muhammad Damer Sky Bin Muhammad Shahril Amen',
+    'Naguilan Ravishaker', 'Nur Uraihah Putri Putra', 'Ong Wei Ting Chloe',
+    'Pham Minh Khanh Chi', 'Shayerin Airsita Cuaca', 'Shivangh Jain',
+    'Tay Zhe Yuan Eric', 'Thasane Amaan Rohit', 'Toh Jing Xuan Joslyn',
+    'Wang Haige', 'Warren Chen Boyuan', 'Wigutti Joaquin',
+    'Xie Danyang'
+  ]
+};
 
 const SUPABASE_URL = 'https://zwdzvzvbotuuxxwtreqe.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3ZHp2enZib3R1dXh4d3RyZXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxODE4NDgsImV4cCI6MjA5NTc1Nzg0OH0.vdg0BnrsiWv8AnRsr-4323Gz5FKps5DoArvDJKeQAr8';
 
-// Initialize dropdowns
 function initDropdowns() {
   const select1 = document.getElementById('studentName');
   const select2 = document.getElementById('resetStudentName');
   
-  CPS_P4_STUDENTS.forEach(name => {
+  Object.values(CPS_P4_STUDENTS).flat().forEach(name => {
     const opt1 = document.createElement('option');
     opt1.value = name;
     opt1.textContent = name;
@@ -210,14 +243,12 @@ async function handleLogin(e) {
   const pwd = document.getElementById('password').value;
 
   try {
-    // Check if student exists in auth table
     const res = await fetch(`${SUPABASE_URL}/rest/v1/student_auth?student_name=eq.${encodeURIComponent(name)}`, {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
     });
     const rows = await res.json();
 
     if (rows.length === 0) {
-      // New student - show create password form
       document.getElementById('newStudentName').value = name;
       document.getElementById('loginForm').classList.remove('show');
       document.getElementById('createPwForm').classList.add('show');
@@ -225,10 +256,8 @@ async function handleLogin(e) {
       return;
     }
 
-    // Existing student - verify password
     const auth = rows[0];
     if (auth.password_hash === hashPassword(pwd)) {
-      // Login success
       localStorage.setItem('student', JSON.stringify({name, class: auth.class_name}));
       window.location.href = 'games-hub.html?hero=' + encodeURIComponent(name) + '&cls=' + encodeURIComponent(auth.class_name);
     } else {
@@ -243,6 +272,7 @@ async function handleLogin(e) {
 async function handleCreatePassword(e) {
   e.preventDefault();
   const name = document.getElementById('newStudentName').value;
+  const cls = document.getElementById('newClass').value;
   const pw1 = document.getElementById('newPassword').value;
   const pw2 = document.getElementById('confirmPassword').value;
 
@@ -252,11 +282,6 @@ async function handleCreatePassword(e) {
   }
 
   try {
-    // Extract class from student name (last word)
-    const classMatch = name.match(/(\d Integrity|\d Care|\d Graciousness|\d Resilience|\d Respect)$/);
-    const cls = classMatch ? classMatch[0] : '4 Integrity';
-
-    // Create auth record
     const res = await fetch(`${SUPABASE_URL}/rest/v1/student_auth`, {
       method: 'POST',
       headers: {
@@ -273,17 +298,17 @@ async function handleCreatePassword(e) {
     });
 
     if (res.ok) {
-      showMessage('✅ Password created! Logging in...', 'success');
+      showMessage('✅ Account created! Logging in...', 'success');
       setTimeout(() => {
         localStorage.setItem('student', JSON.stringify({name, class: cls}));
         window.location.href = 'games-hub.html?hero=' + encodeURIComponent(name) + '&cls=' + encodeURIComponent(cls);
       }, 1000);
     } else {
-      showMessage('⚠️ Error creating password', 'error');
+      showMessage('⚠️ Error creating account', 'error');
     }
   } catch (err) {
     console.error(err);
-    showMessage('⚠️ Error creating password', 'error');
+    showMessage('⚠️ Error creating account', 'error');
   }
 }
 
@@ -293,7 +318,6 @@ async function handleResetPassword(e) {
   const tempPw = document.getElementById('tempPassword').value;
 
   try {
-    // Update password in auth table
     const res = await fetch(`${SUPABASE_URL}/rest/v1/student_auth?student_name=eq.${encodeURIComponent(name)}`, {
       method: 'PATCH',
       headers: {
@@ -311,7 +335,7 @@ async function handleResetPassword(e) {
       document.getElementById('resetPwForm').reset();
       setTimeout(() => switchToLogin(), 2000);
     } else {
-      showMessage('⚠️ Student not found or error resetting password', 'error');
+      showMessage('⚠️ Student not found', 'error');
     }
   } catch (err) {
     console.error(err);
@@ -333,7 +357,6 @@ function switchToLogin() {
   document.getElementById('loginForm').reset();
 }
 
-// Simple hash function (NOT production-grade - for demo only)
 function hashPassword(pw) {
   let hash = 0;
   for (let i = 0; i < pw.length; i++) {
@@ -343,7 +366,6 @@ function hashPassword(pw) {
   return 'hash_' + Math.abs(hash).toString(36);
 }
 
-// Initialize on load
 window.addEventListener('DOMContentLoaded', initDropdowns);
 </script>
 </body>
