@@ -269,15 +269,19 @@ async function handleLogin(e) {
   e.preventDefault();
   const cls = document.getElementById('classSelect').value;
   const name = document.getElementById('studentName').value;
-  const pwd = document.getElementById('password').value;
+  const pwd = document.getElementById('password').value.trim();
+
+  if (!cls || !name) { showMessage('❌ Please choose your class and name', 'error'); return; }
+  if (!pwd) { showMessage('❌ Please enter your password', 'error'); return; }
 
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/student_auth?student_name=eq.${encodeURIComponent(name)}`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/student_auth?student_name=eq.${encodeURIComponent(name)}&select=*`, {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
     });
+    if (!res.ok) { showMessage('⚠️ Could not reach the server. Try again.', 'error'); return; }
     const rows = await res.json();
 
-    if (rows.length === 0) {
+    if (!Array.isArray(rows) || rows.length === 0) {
       document.getElementById('newClass').value = cls;
       document.getElementById('newStudentName').value = name;
       document.getElementById('loginForm').classList.remove('show');
@@ -287,11 +291,18 @@ async function handleLogin(e) {
     }
 
     const auth = rows[0];
-    if (auth.password_hash === hashPassword(pwd)) {
+    const stored = (auth.password_hash || '').trim();
+    const sha = await hashPassword(pwd);
+
+    if (stored === sha) {
+      localStorage.setItem('student', JSON.stringify({name, class: cls}));
+      window.location.href = 'games-hub.html?hero=' + encodeURIComponent(name) + '&cls=' + encodeURIComponent(cls);
+    } else if (stored === legacyHash(pwd)) {
+      await upgradeHash(name, pwd);
       localStorage.setItem('student', JSON.stringify({name, class: cls}));
       window.location.href = 'games-hub.html?hero=' + encodeURIComponent(name) + '&cls=' + encodeURIComponent(cls);
     } else {
-      showMessage('❌ Incorrect password', 'error');
+      showMessage('❌ Incorrect password. Ask your teacher to reset it if you forgot.', 'error');
     }
   } catch (err) {
     console.error(err);
@@ -303,9 +314,13 @@ async function handleCreatePassword(e) {
   e.preventDefault();
   const cls = document.getElementById('newClass').value;
   const name = document.getElementById('newStudentName').value;
-  const pw1 = document.getElementById('newPassword').value;
-  const pw2 = document.getElementById('confirmPassword').value;
+  const pw1 = document.getElementById('newPassword').value.trim();
+  const pw2 = document.getElementById('confirmPassword').value.trim();
 
+  if (pw1.length < 6) {
+    showMessage('❌ Password must be at least 6 characters', 'error');
+    return;
+  }
   if (pw1 !== pw2) {
     showMessage('❌ Passwords do not match', 'error');
     return;
@@ -317,12 +332,13 @@ async function handleCreatePassword(e) {
       headers: {
         'Content-Type': 'application/json',
         'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Prefer': 'return=minimal'
       },
       body: JSON.stringify({
         student_name: name,
         class_name: cls,
-        password_hash: hashPassword(pw1),
+        password_hash: await hashPassword(pw1),
         created_at: new Date().toISOString()
       })
     });
@@ -333,7 +349,11 @@ async function handleCreatePassword(e) {
         localStorage.setItem('student', JSON.stringify({name, class: cls}));
         window.location.href = 'games-hub.html?hero=' + encodeURIComponent(name) + '&cls=' + encodeURIComponent(cls);
       }, 1000);
+    } else if (res.status === 409) {
+      showMessage('⚠️ You already have an account — go back and log in with your password.', 'error');
+      setTimeout(() => switchToLogin(), 2500);
     } else {
+      console.error('Create failed:', res.status, await res.text());
       showMessage('⚠️ Error creating account', 'error');
     }
   } catch (err) {
@@ -345,7 +365,10 @@ async function handleCreatePassword(e) {
 async function handleResetPassword(e) {
   e.preventDefault();
   const name = document.getElementById('resetStudentName').value;
-  const tempPw = document.getElementById('tempPassword').value;
+  const tempPw = document.getElementById('tempPassword').value.trim();
+
+  if (!name) { showMessage('❌ Select a student first', 'error'); return; }
+  if (tempPw.length < 6) { showMessage('❌ Temp password must be at least 6 characters', 'error'); return; }
 
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/student_auth?student_name=eq.${encodeURIComponent(name)}`, {
@@ -356,7 +379,8 @@ async function handleResetPassword(e) {
         'Authorization': `Bearer ${SUPABASE_KEY}`
       },
       body: JSON.stringify({
-        password_hash: hashPassword(tempPw)
+        password_hash: await hashPassword(tempPw),
+        updated_at: new Date().toISOString()
       })
     });
 
@@ -387,13 +411,37 @@ function switchToLogin() {
   document.getElementById('loginForm').reset();
 }
 
-function hashPassword(pw) {
+// Legacy 32-bit hash — kept ONLY so accounts made before the upgrade still log in.
+function legacyHash(pw) {
   let hash = 0;
   for (let i = 0; i < pw.length; i++) {
     hash = ((hash << 5) - hash) + pw.charCodeAt(i);
     hash = hash & hash;
   }
   return 'hash_' + Math.abs(hash).toString(36);
+}
+
+// Current hash: SHA-256 via the browser's built-in crypto.
+async function hashPassword(pw) {
+  const data = new TextEncoder().encode(pw);
+  const buf = await crypto.subtle.digest('SHA-256', data);
+  return 'sha256_' + Array.from(new Uint8Array(buf))
+    .map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Update a student's stored hash to the new SHA-256 value (silent self-heal).
+async function upgradeHash(name, pw) {
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/student_auth?student_name=eq.${encodeURIComponent(name)}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      },
+      body: JSON.stringify({ password_hash: await hashPassword(pw), updated_at: new Date().toISOString() })
+    });
+  } catch (e) { /* non-fatal */ }
 }
 
 window.addEventListener('DOMContentLoaded', () => {
