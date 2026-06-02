@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StoryForge Teacher Setup</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#FAF8F3;--surface:#FFFFFF;--surface-alt:#F5F1E8;--text:#2C2C2C;--muted:#6B6B6B;--accent:#D4A574;--accent-dark:#8B6F47;--success:#6BA88D;--warning:#D4A252;--error:#C85A5A;--radius:12px}
+html,body{width:100%;height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:40px;padding:20px 0}
+.header h1{font-family:'Crimson Text',serif;font-size:36px;font-weight:400;color:var(--accent-dark)}
+.btn-new{background:var(--success);color:#fff;padding:12px 24px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:background .2s}
+.btn-new:hover{background:#5A9479}
+.tabs{display:flex;gap:20px;border-bottom:2px solid #E0D5C7;margin-bottom:30px}
+.tab-btn{background:none;border:none;padding:12px 0;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s}
+.tab-btn.active{color:var(--accent-dark);border-bottom-color:var(--accent)}
+.form-section{background:var(--surface);padding:32px;border-radius:var(--radius);box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:20px}
+.form-section h2{font-family:'Crimson Text',serif;font-size:24px;color:var(--accent-dark);margin-bottom:24px;display:flex;align-items:center;gap:8px}
+.form-group{margin-bottom:24px}
+.form-group label{display:block;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:8px}
+.form-group input,
+.form-group textarea,
+.form-group select{width:100%;padding:12px;border:1px solid #E0D5C7;border-radius:8px;font-family:inherit;font-size:14px;color:var(--text);transition:border-color .2s}
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(212,165,116,.1)}
+.form-group textarea{resize:vertical;min-height:100px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.btn-primary{background:var(--accent);color:#fff;padding:12px 24px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:background .2s;width:100%}
+.btn-primary:hover{background:var(--accent-dark)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-secondary{background:var(--surface-alt);color:var(--text);padding:12px 24px;border:1px solid #E0D5C7;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;width:100%}
+.btn-secondary:hover{background:#E8DFD6}
+.exercises-list{display:grid;gap:16px}
+.exercise-card{background:var(--surface);padding:20px;border-radius:var(--radius);border-left:4px solid var(--accent);display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.exercise-card h3{font-size:16px;color:var(--text);margin-bottom:4px}
+.exercise-card p{font-size:13px;color:var(--muted)}
+.exercise-card-actions{display:flex;gap:8px}
+.btn-small{background:var(--surface-alt);color:var(--text);padding:8px 16px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:background .2s}
+.btn-small:hover{background:#E8DFD6}
+.btn-small.delete{background:rgba(200,90,90,.1);color:var(--error)}
+.btn-small.delete:hover{background:rgba(200,90,90,.2)}
+.paragraph-setup{background:var(--surface-alt);padding:16px;border-radius:8px;margin-bottom:16px;border-left:3px solid var(--warning)}
+.paragraph-setup h4{font-size:14px;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.paragraph-setup textarea{width:100%;padding:12px;border:1px solid #E0D5C7;border-radius:6px;font-size:13px;min-height:80px;font-family:inherit}
+.message{padding:16px;border-radius:8px;margin-bottom:20px;display:none}
+.message.show{display:block}
+.message.success{background:rgba(107,168,141,.1);border-left:4px solid var(--success);color:var(--success)}
+.message.error{background:rgba(200,90,90,.1);border-left:4px solid var(--error);color:var(--error)}
+.message.info{background:rgba(212,165,116,.1);border-left:4px solid var(--accent);color:var(--accent-dark)}
+.back-btn{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--accent);text-decoration:none;margin-bottom:20px;font-weight:600}
+.back-btn:hover{color:var(--accent-dark)}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>📚 StoryForge Setup</h1>
+    <button class="btn-new" onclick="showTab('create')">+ New Exercise</button>
+  </div>
+
+  <div id="successMsg" class="message success"></div>
+  <div id="errorMsg" class="message error"></div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('create')">Create Exercise</button>
+    <button class="tab-btn" onclick="showTab('exercises')">My Exercises</button>
+  </div>
+
+  <!-- Create Exercise Tab -->
+  <div id="createTab" class="tab-content">
+    <div class="form-section">
+      <h2>📝 New Composition Exercise</h2>
+
+      <form id="exerciseForm" onsubmit="saveExercise(event)">
+        <div class="form-group">
+          <label>Exercise Title</label>
+          <input type="text" id="title" placeholder="e.g., My Unforgettable Holiday" required>
+        </div>
+
+        <div class="form-group">
+          <label>Writing Prompt</label>
+          <textarea id="prompt" placeholder="e.g., Write about a memorable experience from your holiday. What made it special?" required></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Number of Paragraphs</label>
+            <select id="numParagraphs" onchange="updateParagraphSetup()">
+              <option value="3">3 Paragraphs</option>
+              <option value="4">4 Paragraphs</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Total Word Count Target</label>
+            <input type="number" id="wordTarget" placeholder="e.g., 300" value="300">
+          </div>
+        </div>
+
+        <!-- Paragraph Criteria Setup -->
+        <div id="paragraphsSetup"></div>
+
+        <div class="form-group">
+          <label>Helping Words / Sentence Starters (optional)</label>
+          <textarea id="helpingWords" placeholder="e.g., For example, In addition, Furthermore, This shows that..."></textarea>
+        </div>
+
+        <button type="submit" class="btn-primary">Create Exercise</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Exercises Tab -->
+  <div id="exercisesTab" class="tab-content" style="display:none">
+    <a href="games-hub.html" class="back-btn">← Back to Games Hub</a>
+    
+    <div class="form-section">
+      <h2>🎓 Your Exercises</h2>
+      <div class="exercises-list" id="exercisesList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://zwdzvzvbotuuxxwtreqe.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3ZHp2enZib3R1dXh4d3RyZXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxODE4NDgsImV4cCI6MjA5NTc1Nzg0OH0.vdg0BnrsiWv8AnRsr-4323Gz5FKps5DoArvDJKeQAr8';
+
+function showTab(tabName) {
+  document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  
+  if (tabName === 'create') {
+    document.getElementById('createTab').style.display = 'block';
+    document.querySelectorAll('.tab-btn')[0].classList.add('active');
+    updateParagraphSetup();
+  } else {
+    document.getElementById('exercisesTab').style.display = 'block';
+    document.querySelectorAll('.tab-btn')[1].classList.add('active');
+    loadExercises();
+  }
+}
+
+function updateParagraphSetup() {
+  const num = parseInt(document.getElementById('numParagraphs').value);
+  const container = document.getElementById('paragraphsSetup');
+  let html = '';
+  
+  for (let i = 1; i <= num; i++) {
+    html += `
+      <div class="paragraph-setup">
+        <h4>📄 Paragraph ${i} Criteria</h4>
+        <textarea id="para${i}Criteria" placeholder="e.g., Describe the setting in detail. Include sensory details (what you saw, heard, felt)" required></textarea>
+      </div>
+    `;
+  }
+  
+  container.innerHTML = html;
+}
+
+async function saveExercise(e) {
+  e.preventDefault();
+  
+  const title = document.getElementById('title').value;
+  const prompt = document.getElementById('prompt').value;
+  const numParagraphs = parseInt(document.getElementById('numParagraphs').value);
+  const wordTarget = document.getElementById('wordTarget').value;
+  const helpingWords = document.getElementById('helpingWords').value;
+  
+  const exerciseData = {
+    title,
+    prompt,
+    num_paragraphs: numParagraphs,
+    word_target: wordTarget,
+    helping_words: helpingWords,
+    created_by: JSON.parse(localStorage.getItem('student') || '{}').name || 'Teacher'
+  };
+  
+  for (let i = 1; i <= numParagraphs; i++) {
+    exerciseData[`paragraph_${i}_criteria`] = document.getElementById(`para${i}Criteria`).value;
+  }
+  
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/composition_exercises`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      },
+      body: JSON.stringify(exerciseData)
+    });
+    
+    if (res.ok) {
+      showMessage('✅ Exercise created successfully!', 'success');
+      document.getElementById('exerciseForm').reset();
+      updateParagraphSetup();
+    } else {
+      showMessage('❌ Error creating exercise', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showMessage('⚠️ Error: ' + err.message, 'error');
+  }
+}
+
+async function loadExercises() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/composition_exercises?order=created_at.desc`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    const exercises = await res.json();
+    
+    const list = document.getElementById('exercisesList');
+    if (exercises.length === 0) {
+      list.innerHTML = '<p style="color:var(--muted);grid-column:1/-1">No exercises yet. Create your first exercise to get started!</p>';
+      return;
+    }
+    
+    list.innerHTML = exercises.map(ex => `
+      <div class="exercise-card">
+        <div>
+          <h3>${ex.title}</h3>
+          <p>${ex.num_paragraphs} paragraphs • ${ex.word_target} words target</p>
+        </div>
+        <div class="exercise-card-actions">
+          <button class="btn-small" onclick="copyShareLink('${ex.id}')">Share Link</button>
+          <button class="btn-small delete" onclick="deleteExercise('${ex.id}')">Delete</button>
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    console.error(err);
+    showMessage('⚠️ Error loading exercises', 'error');
+  }
+}
+
+function copyShareLink(exerciseId) {
+  const link = `${window.location.origin}/wordquest/storyforge.html?ex=${exerciseId}`;
+  navigator.clipboard.writeText(link);
+  showMessage('📋 Link copied to clipboard!', 'info');
+}
+
+async function deleteExercise(exerciseId) {
+  if (!confirm('Delete this exercise? This cannot be undone.')) return;
+  
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/composition_exercises?id=eq.${exerciseId}`, {
+      method: 'DELETE',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      }
+    });
+    loadExercises();
+    showMessage('✅ Exercise deleted', 'success');
+  } catch (err) {
+    showMessage('❌ Error deleting exercise', 'error');
+  }
+}
+
+function showMessage(text, type) {
+  const el = document.getElementById(type === 'error' ? 'errorMsg' : type === 'success' ? 'successMsg' : 'infoMsg');
+  if (!el && type === 'info') {
+    const div = document.createElement('div');
+    div.id = 'infoMsg';
+    div.className = 'message info';
+    document.body.insertBefore(div, document.body.firstChild);
+  }
+  const msg = document.getElementById(type === 'error' ? 'errorMsg' : type === 'success' ? 'successMsg' : 'infoMsg');
+  msg.textContent = text;
+  msg.classList.add('show');
+  setTimeout(() => msg.classList.remove('show'), 3000);
+}
+
+window.addEventListener('DOMContentLoaded', () => updateParagraphSetup());
+</script>
+</body>
+</html>
