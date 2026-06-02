@@ -80,17 +80,17 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
       <div class="form-group">
         <label class="form-label">🔐 Password</label>
         <input type="password" id="password" class="form-input" placeholder="Enter your password" required>
-        <div class="hint">Forgot password? Contact your teacher</div>
+        <div class="hint">First time? Use the class password your teacher gave you.</div>
       </div>
 
       <button type="submit" class="btn btn-primary">🎮 Log In</button>
-      <p class="text-center">New student? Your password will be created after first login</p>
+      <p class="text-center"><a href="javascript:switchToChange()">Change my password</a></p>
     </form>
 
-    <!-- Create Password Form -->
+    <!-- Set / Change Password Form -->
     <form id="createPwForm" onsubmit="handleCreatePassword(event)">
-      <p style="text-align:center;margin-bottom:20px;font-size:13px;color:var(--muted)">Welcome! Create your password</p>
-      
+      <p id="setPwHeading" style="text-align:center;margin-bottom:20px;font-size:13px;color:var(--muted)">Welcome! Set your own password</p>
+
       <div class="form-group">
         <label class="form-label">🏠 Class</label>
         <input type="text" id="newClass" class="form-input" readonly style="opacity:0.7">
@@ -101,17 +101,23 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
         <input type="text" id="newStudentName" class="form-input" readonly style="opacity:0.7">
       </div>
 
+      <div class="form-group" id="currentPwGroup" style="display:none">
+        <label class="form-label">🔐 Current Password</label>
+        <input type="password" id="currentPassword" class="form-input" placeholder="Your current password">
+      </div>
+
       <div class="form-group">
-        <label class="form-label">🔐 Create Password</label>
+        <label class="form-label">🔐 New Password</label>
         <input type="password" id="newPassword" class="form-input" placeholder="At least 6 characters" required minlength="6">
       </div>
 
       <div class="form-group">
-        <label class="form-label">🔐 Confirm Password</label>
+        <label class="form-label">🔐 Confirm New Password</label>
         <input type="password" id="confirmPassword" class="form-input" placeholder="Re-enter password" required minlength="6">
       </div>
 
-      <button type="submit" class="btn btn-primary">✅ Create Account</button>
+      <button type="submit" class="btn btn-primary">✅ Save Password</button>
+      <button type="button" class="btn btn-ghost" onclick="switchToLogin()">← Back to Login</button>
     </form>
 
     <!-- Reset Password Form (Teacher) -->
@@ -228,6 +234,11 @@ const CPS_P4_STUDENTS = {
 const SUPABASE_URL = 'https://zwdzvzvbotuuxxwtreqe.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3ZHp2enZib3R1dXh4d3RyZXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxODE4NDgsImV4cCI6MjA5NTc1Nzg0OH0.vdg0BnrsiWv8AnRsr-4323Gz5FKps5DoArvDJKeQAr8';
 
+// Shared first-time password. Students log in with this once, then must set their own.
+const GENERIC_PASSWORD = 'cps2026';
+// Tracks whether the set-password screen is a forced first-change or a voluntary change.
+let CHANGE_MODE = 'first';
+
 function updateNameDropdown() {
   const cls = document.getElementById('classSelect').value;
   const select = document.getElementById('studentName');
@@ -281,51 +292,47 @@ async function handleLogin(e) {
     if (!res.ok) { showMessage('⚠️ Could not reach the server. Try again.', 'error'); return; }
     const rows = await res.json();
 
+    // First-ever login: must use the generic class password.
     if (!Array.isArray(rows) || rows.length === 0) {
-      document.getElementById('newClass').value = cls;
-      document.getElementById('newStudentName').value = name;
-      document.getElementById('loginForm').classList.remove('show');
-      document.getElementById('createPwForm').classList.add('show');
-      document.getElementById('loginSection').style.display = 'none';
+      if (pwd !== GENERIC_PASSWORD) {
+        showMessage('❌ First time? Use the class password your teacher gave you.', 'error');
+        return;
+      }
+      const created = await createAccount(name, cls, GENERIC_PASSWORD);
+      if (!created) { showMessage('⚠️ Could not start your account. Try again.', 'error'); return; }
+      goToSetPassword(name, cls, 'first');
       return;
     }
 
     const auth = rows[0];
     const stored = (auth.password_hash || '').trim();
     const sha = await hashPassword(pwd);
+    const genSha = await hashPassword(GENERIC_PASSWORD);
 
-    if (stored === sha) {
-      localStorage.setItem('student', JSON.stringify({name, class: cls}));
-      window.location.href = 'games-hub.html?hero=' + encodeURIComponent(name) + '&cls=' + encodeURIComponent(cls);
-    } else if (stored === legacyHash(pwd)) {
-      await upgradeHash(name, pwd);
-      localStorage.setItem('student', JSON.stringify({name, class: cls}));
-      window.location.href = 'games-hub.html?hero=' + encodeURIComponent(name) + '&cls=' + encodeURIComponent(cls);
-    } else {
+    const matches = stored === sha || stored === legacyHash(pwd);
+    if (!matches) {
       showMessage('❌ Incorrect password. Ask your teacher to reset it if you forgot.', 'error');
+      return;
     }
+
+    // Still on the generic password → force a personal one before entering.
+    if (stored === genSha || stored === legacyHash(GENERIC_PASSWORD)) {
+      goToSetPassword(name, cls, 'first');
+      return;
+    }
+
+    if (stored === legacyHash(pwd)) await upgradeHash(name, pwd);
+
+    localStorage.setItem('student', JSON.stringify({name, class: cls}));
+    window.location.href = 'games-hub.html?hero=' + encodeURIComponent(name) + '&cls=' + encodeURIComponent(cls);
   } catch (err) {
     console.error(err);
     showMessage('⚠️ Error logging in', 'error');
   }
 }
 
-async function handleCreatePassword(e) {
-  e.preventDefault();
-  const cls = document.getElementById('newClass').value;
-  const name = document.getElementById('newStudentName').value;
-  const pw1 = document.getElementById('newPassword').value.trim();
-  const pw2 = document.getElementById('confirmPassword').value.trim();
-
-  if (pw1.length < 6) {
-    showMessage('❌ Password must be at least 6 characters', 'error');
-    return;
-  }
-  if (pw1 !== pw2) {
-    showMessage('❌ Passwords do not match', 'error');
-    return;
-  }
-
+// Insert a new student_auth row. Returns true on success (or if it already exists).
+async function createAccount(name, cls, plainPw) {
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/student_auth`, {
       method: 'POST',
@@ -338,27 +345,82 @@ async function handleCreatePassword(e) {
       body: JSON.stringify({
         student_name: name,
         class_name: cls,
-        password_hash: await hashPassword(pw1),
+        password_hash: await hashPassword(plainPw),
         created_at: new Date().toISOString()
+      })
+    });
+    return res.ok || res.status === 409;
+  } catch (e) { console.error(e); return false; }
+}
+
+// Show the set-password screen. mode = 'first' (forced) or 'change' (voluntary).
+function goToSetPassword(name, cls, mode) {
+  CHANGE_MODE = mode;
+  document.getElementById('newClass').value = cls;
+  document.getElementById('newStudentName').value = name;
+  document.getElementById('setPwHeading').textContent =
+    mode === 'first' ? 'Almost there! Set your own password' : 'Change your password';
+  document.getElementById('currentPwGroup').style.display = mode === 'change' ? 'block' : 'none';
+  document.getElementById('currentPassword').value = '';
+  document.getElementById('newPassword').value = '';
+  document.getElementById('confirmPassword').value = '';
+  document.getElementById('loginForm').classList.remove('show');
+  document.getElementById('resetPwForm').classList.remove('show');
+  document.getElementById('createPwForm').classList.add('show');
+  document.getElementById('loginSection').style.display = 'none';
+}
+
+async function handleCreatePassword(e) {
+  e.preventDefault();
+  const cls = document.getElementById('newClass').value;
+  const name = document.getElementById('newStudentName').value;
+  const pw1 = document.getElementById('newPassword').value.trim();
+  const pw2 = document.getElementById('confirmPassword').value.trim();
+
+  if (pw1.length < 6) { showMessage('❌ Password must be at least 6 characters', 'error'); return; }
+  if (pw1 !== pw2) { showMessage('❌ Passwords do not match', 'error'); return; }
+  if (pw1 === GENERIC_PASSWORD) { showMessage('❌ Please choose a password different from the class password.', 'error'); return; }
+
+  try {
+    // Voluntary change: verify the current password first.
+    if (CHANGE_MODE === 'change') {
+      const cur = document.getElementById('currentPassword').value.trim();
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/student_auth?student_name=eq.${encodeURIComponent(name)}&select=*`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      });
+      const rows = await res.json();
+      if (!Array.isArray(rows) || rows.length === 0) { showMessage('⚠️ Account not found. Log in first.', 'error'); return; }
+      const stored = (rows[0].password_hash || '').trim();
+      const okCur = stored === await hashPassword(cur) || stored === legacyHash(cur);
+      if (!okCur) { showMessage('❌ Current password is incorrect', 'error'); return; }
+    }
+
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/student_auth?student_name=eq.${encodeURIComponent(name)}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      },
+      body: JSON.stringify({
+        password_hash: await hashPassword(pw1),
+        updated_at: new Date().toISOString()
       })
     });
 
     if (res.ok) {
-      showMessage('✅ Account created! Logging in...', 'success');
+      showMessage('✅ Password saved! Logging in...', 'success');
       setTimeout(() => {
         localStorage.setItem('student', JSON.stringify({name, class: cls}));
         window.location.href = 'games-hub.html?hero=' + encodeURIComponent(name) + '&cls=' + encodeURIComponent(cls);
       }, 1000);
-    } else if (res.status === 409) {
-      showMessage('⚠️ You already have an account — go back and log in with your password.', 'error');
-      setTimeout(() => switchToLogin(), 2500);
     } else {
-      console.error('Create failed:', res.status, await res.text());
-      showMessage('⚠️ Error creating account', 'error');
+      console.error('Save failed:', res.status, await res.text());
+      showMessage('⚠️ Error saving password', 'error');
     }
   } catch (err) {
     console.error(err);
-    showMessage('⚠️ Error creating account', 'error');
+    showMessage('⚠️ Error saving password', 'error');
   }
 }
 
@@ -401,6 +463,16 @@ function switchToReset() {
   document.getElementById('loginForm').classList.remove('show');
   document.getElementById('resetPwForm').classList.add('show');
   document.getElementById('loginSection').style.display = 'none';
+}
+
+function switchToChange() {
+  const cls = document.getElementById('classSelect').value;
+  const name = document.getElementById('studentName').value;
+  if (!cls || !name) {
+    showMessage('❌ Choose your class and name first, then tap "Change my password".', 'error');
+    return;
+  }
+  goToSetPassword(name, cls, 'change');
 }
 
 function switchToLogin() {
